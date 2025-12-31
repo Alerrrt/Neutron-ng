@@ -1,359 +1,128 @@
 # Neutron-ng
 
-**Professional CLI Reconnaissance Tool for Penetration Testers**
+Professional CLI reconnaissance tool for penetration testers and security professionals.
 
-Neutron-ng is a high-performance, command-line reconnaissance toolkit built in Rust. Designed specifically for penetration testers and security professionals, it combines 30+ enumeration techniques to efficiently map target attack surfaces during security assessments.
-
-```
-╔═══════════════════════════════════════════════════════════════════════════════╗
-║   ███╗   ██╗███████╗██╗   ██╗████████╗██████╗  ██████╗ ███╗   ██╗           ║
-║   ████╗  ██║██╔════╝██║   ██║╚══██╔══╝██╔══██╗██╔═══██╗████╗  ██║           ║
-║   ██╔██╗ ██║█████╗  ██║   ██║   ██║   ██████╔╝██║   ██║██╔██╗ ██║           ║
-║   ██║╚██╗██║██╔══╝  ██║   ██║   ██║   ██╔══██╗██║   ██║██║╚██╗██║           ║
-║   ██║ ╚████║███████╗╚██████╔╝   ██║   ██║  ██║╚██████╔╝██║ ╚████║           ║
-║   ╚═╝  ╚═══╝╚══════╝ ╚═════╝    ╚═╝   ╚═╝  ╚═╝ ╚═════╝ ╚═╝  ╚═══╝           ║
-╚═══════════════════════════════════════════════════════════════════════════════╝
-```
-
-**Pure CLI. No Web Interface. Built for the Terminal.**
+High-performance reconnaissance toolkit built in Rust, combining 30+ enumeration techniques to efficiently map target attack surfaces.
 
 ## Features
 
-### 🔍 Subdomain Enumeration
-- **9 Passive Sources**: cert.sh, crt.sh, VirusTotal, SecurityTrails, Chaos, BufferOver, RapidDNS, Anubis, recon.dev
-- **Active DNS Bruteforce**: 100+ common subdomain patterns
-- **Wildcard Detection**: Automatic filtering of wildcard domains
-- **DNS Resolution**: Verify and resolve all discovered subdomains
+**Subdomain Enumeration**
+- 9 passive sources: cert.sh, crt.sh, VirusTotal, SecurityTrails, Chaos, BufferOver, RapidDNS, Anubis, recon.dev
+- Active DNS bruteforce with 100+ common patterns
+- Wildcard detection and DNS resolution
 
-### 🌐 URL Discovery
-- **Historical Archives**: Wayback Machine, Common Crawl
-- **Threat Intelligence**: AlienVault OTX, URLScan.io
-- **Deduplication**: Smart URL normalization and filtering
+**URL Discovery**
+- Historical archives: Wayback Machine, Common Crawl
+- Threat intelligence: AlienVault OTX, URLScan.io
 
-### 📜 Advanced JavaScript Analysis
-**Standard Extraction:**
-- API endpoint discovery (LinkFinder)
-- Secret detection (14+ patterns: AWS, Google, GitHub, etc.)
+**JavaScript Analysis**
+- API endpoint discovery
+- Secret detection (AWS, Google, GitHub tokens, etc.)
+- GraphQL endpoint extraction
+- JWT token detection
+- Source map discovery
+- Webhook detection (Discord, Slack)
+- Internal IP extraction
+- Hidden admin route discovery
 
-**Advanced Patterns:**
-- GraphQL endpoints & schemas
-- JWT token extraction
-- Source map discovery (`.js.map`)
-- Discord/Slack webhooks
-- Firebase database URLs
-- Internal IP addresses (RFC1918)
-- Hidden admin routes
-- GitHub tokens (all formats)
-- S3 bucket references
-- Private key detection
-- Email addresses
-
-### 🔐 DNS Intelligence
-- Comprehensive DNS records (A, AAAA, MX, TXT, NS)
+**DNS Intelligence**
+- Complete DNS records (A, AAAA, MX, TXT, NS)
 - SPF/DKIM/DMARC analysis
-- Name server enumeration
 
-### 🛠️ Technology Fingerprinting
-- Web server detection (Apache, Nginx, IIS, LiteSpeed)
-- Framework identification (React, Angular, Vue, Django, Rails)
-- CMS detection (WordPress, Drupal, Joomla)
-- CDN/WAF identification (Cloudflare, Akamai, AWS CloudFront)
-- JavaScript library versioning
+**Technology Fingerprinting**
+- Web server detection
+- Framework identification
+- CMS detection
+- CDN/WAF identification
 
-### 🌍 Network Intelligence
-- **ASN Discovery**: Identify organization ASN numbers
-- **BGP/AS Ranges**: Enumerate all IP ranges owned
-- **Reverse DNS**: PTR record lookups
-- **Reverse IP**: Find other domains on same infrastructure
-- **IP-to-ASN Mapping**: Complete infrastructure correlation
-
-## Why Neutron-ng for Pentesters?
-
-### ⚡ Speed & Efficiency
-- **Fast**: Complete reconnaissance in minutes, not hours
-- **Concurrent**: Async I/O for maximum throughput
-- **Lightweight**: Single binary, no heavy dependencies
-- **Offline-Capable**: Works without internet for cached data
-
-### 🎯 Penetration Testing Workflow
-```
-1. Initial Recon     → Quick subdomain + DNS enumeration
-2. Surface Mapping   → URL discovery + technology detection
-3. Asset Discovery   → Network intel + JavaScript analysis
-4. Attack Surface    → Combine and correlate all findings
-5. Export Results    → Clean TXT files for reporting
-```
-
-### 📊 Output Optimized for Reports
-- **TXT Format**: Easy to grep, parse, and include in reports
-- **Organized**: Each finding categorized by type
-- **No Noise**: Deduplicated and verified results only
-- **Professional**: Ready for client deliverables
-
-### 🔧 Integration-Friendly
-```bash
-# Pipe to other tools
-neutron-ng subdomains -t example.com | nuclei -t cves/
-
-# Chain with other recon
-neutron-ng scan -t target.com && cat target.com/urls.txt | httpx -silent
-
-# Grep for specific patterns
-grep "admin" target.com/*.txt
-
-# Generate reports
-cat target.com/SUMMARY.txt >> final_report.md
-```
+**Network Intelligence**
+- ASN discovery
+- BGP range enumeration
+- Reverse DNS lookups
+- IP-to-ASN mapping
 
 ## Installation
 
 ### Prerequisites
-- Rust 1.70+ (install from [rust-lang.org](https://rust-lang.org))
-- `host` command (for DNS lookups)
-- `whois` command (for ASN lookups)
+- Rust 1.70+
+- `host` command
+- `whois` command
 
-### Build from Source
+### Build
 ```bash
-git clone https://github.com/yourusername/Neutron-ng.git
+git clone https://github.com/Alerrrt/Neutron-ng.git
 cd Neutron-ng
 cargo build --release
 sudo cp target/release/neutron-ng /usr/local/bin/
 ```
 
-### Quick Install
-```bash
-cargo install --path neutron-ng
-```
-
 ## Usage
 
-### Interactive Dashboard (Recommended)
+### Interactive Dashboard
 ```bash
 neutron-ng
 ```
 
-**Features:**
-- Menu-driven interface
-- Interactive API key configuration
-- Multiple scan types
-- Real-time progress tracking
+### Command Line
 
-### Command-Line Interface
-
-#### Full Scan
+Full scan:
 ```bash
 neutron-ng scan -t example.com
 ```
 
-#### Subdomain Enumeration Only
+Subdomain enumeration only:
 ```bash
 neutron-ng subdomains -t example.com
 ```
 
-#### URL Discovery Only
-```bash
-neutron-ng urls -t example.com
-```
-
-#### JavaScript Analysis Only
-```bash
-neutron-ng js-analyze -t https://example.com
-```
-
-### Multiple Targets
+Multiple targets:
 ```bash
 neutron-ng scan -t example.com target2.com target3.com
 ```
 
-### Custom Output Directory
-```bash
-neutron-ng scan -t example.com -o /path/to/output
-```
-
-## Output Structure
+## Output
 
 Results are saved in a folder named after your target:
 
 ```
 ./example.com/
-├── SUMMARY.txt              # High-level scan overview
-├── subdomains.txt           # All discovered subdomains with IPs
-├── urls.txt                 # Historical and discovered URLs
-├── dns_records.txt          # Complete DNS records
-├── technologies.txt         # Detected tech stack
-├── network_intel.txt        # ASN, IP ranges, reverse DNS
-├── js_endpoints.txt         # API endpoints from JavaScript
-├── secrets.txt              # Potential secrets found
-└── scan_metadata.json       # Scan metadata and timing
+├── SUMMARY.txt
+├── subdomains.txt
+├── urls.txt
+├── dns_records.txt
+├── technologies.txt
+├── network_intel.txt
+├── js_endpoints.txt
+├── secrets.txt
+└── scan_metadata.json
 ```
 
-### Example Output
+All output is in plain text format for easy integration with other tools.
 
-**SUMMARY.txt:**
-```
-# Neutron-ng Scan Summary
+## API Keys (Optional)
 
-Target: example.com
-Scan ID: example.com
-Start Time: 2025-12-31 10:30:45 UTC
-Duration: 127 seconds
+Set environment variables for enhanced functionality:
 
-## Results
-- Subdomains: 47
-- URLs: 1,234
-- JS Endpoints: 89
-- Secrets: 12
-
-## Modules Run
-- dns
-- subdomains
-- urls
-- technologies
-- javascript
-```
-
-**subdomains.txt:**
-```
-www.example.com → 93.184.216.34 (cert.sh)
-api.example.com → 93.184.216.35 (crt.sh)
-dev.example.com → 10.0.0.5 (dns_bruteforce)
-```
-
-## API Key Configuration
-
-Neutron-ng works without API keys but performs better with them.
-
-### Environment Variables
 ```bash
-export NEUTRON_VIRUSTOTAL_API_KEY="your_key_here"
-export NEUTRON_SECURITYTRAILS_API_KEY="your_key_here"
-export NEUTRON_CHAOS_API_KEY="your_key_here"
+export NEUTRON_VIRUSTOTAL_API_KEY="your_key"
+export NEUTRON_SECURITYTRAILS_API_KEY="your_key"
+export NEUTRON_CHAOS_API_KEY="your_key"
 ```
 
-### Interactive Configuration
-The dashboard will prompt for API keys on first run. You can skip any key - Neutron-ng will use free sources instead.
+Tool works without API keys using free sources.
 
-### Supported Services
-- **VirusTotal**: Enhanced subdomain discovery
-- **SecurityTrails**: Historical DNS data
-- **Project Discovery Chaos**: Community-powered recon
-- **Free Sources**: cert.sh, crt.sh, BufferOver, RapidDNS, Anubis, Wayback, Common Crawl
+## Integration
 
-## Modules
-
-### Core Modules
-- `neutron-subdomain`: Subdomain enumeration
-- `neutron-url`: URL discovery and crawling
-- `neutron-js`: JavaScript analysis and secret detection
-- `neutron-dns`: DNS intelligence gathering
-- `neutron-tech`: Technology fingerprinting
-- `neutron-network`: Network and ASN intelligence
-
-### Utility Modules
-- `neutron-core`: HTTP client, rate limiting, caching
-- `neutron-types`: Shared data structures
-
-## Advanced Features
-
-### Rate Limiting
-Automatic rate limiting prevents overwhelming target servers and APIs:
-- Configurable requests per second
-- Per-host rate limiting
-- API quota management
-
-### Caching
-Smart caching reduces redundant requests:
-- DNS resolution caching
-- HTTP response caching
-- Configurable TTL
-
-### Concurrency
-High-performance async I/O:
-- Concurrent subdomain resolution
-- Parallel URL fetching
-- Thread-safe result aggregation
-
-## Methodology
-
-Neutron-ng implements professional bug bounty reconnaissance techniques based on:
-- [KingOfBugBountyTips](https://github.com/KingOfBugbounty/KingOfBugBountyTips)
-- OWASP Testing Guide
-- Bug Bounty Methodology Research
-
-### Reconnaissance Flow
+Pipe output to other tools:
+```bash
+neutron-ng subdomains -t example.com | nuclei -t cves/
+neutron-ng scan -t target.com && cat target.com/urls.txt | httpx
 ```
-1. DNS Intelligence     → A/AAAA/MX/TXT/NS records
-2. Network Mapping      → ASN, BGP ranges, reverse DNS
-3. Subdomain Enum       → 9 passive + active sources
-4. Technology Detection → Framework, CMS, CDN, WAF
-5. URL Discovery        → Historical archives + crawling
-6. JavaScript Analysis  → Endpoints, secrets, patterns
-7. Result Correlation   → Cross-reference findings
-```
-
-## Performance
-
-- **Speed**: Full scan in <5 minutes for most targets
-- **Coverage**: 30+ reconnaissance mechanisms
-- **Accuracy**: 95%+ accurate detection with minimal false positives
-- **Efficiency**: Smart caching and rate limiting
-
-## Contributing
-
-Contributions welcome! Areas of interest:
-- Additional data sources
-- New detection patterns
-- Performance optimizations
-- Documentation improvements
-
-## Roadmap
-
-### Phase 3-4 (In Progress)
-- [ ] Parameter discovery module
-- [ ] Cloud asset enumeration (S3, Firebase, Azure, GCP)
-- [ ] Content discovery/fuzzing
-- [ ] GitHub reconnaissance
-
-### Phase 5-8 (Planned)
-- [ ] Advanced API enumeration
-- [ ] Subdomain permutation
-- [ ] Enhanced historical data mining
-- [ ] WebSocket/modern protocol detection
-
-### Phase 9-12 (Future)
-- [ ] Screenshot capabilities
-- [ ] WHOIS/organization data
-- [ ] Enhanced crawler
-- [ ] Vulnerability scanning
 
 ## License
 
-MIT License - See LICENSE file for details
+MIT License
 
 ## Disclaimer
 
-This tool is for authorized security testing only. Always obtain proper authorization before scanning any targets. The authors are not responsible for misuse or damage caused by this tool.
-
-## Credits
-
-Built with:
-- Rust programming language
-- Professional bug bounty methodologies
-- Open-source intelligence techniques
-
-Inspired by industry-standard tools:
-- Subfinder
-- Amass
-- LinkFinder
-- SecretFinder
-- Nuclei
-
-## Support
-
-- Issues: [GitHub Issues](https://github.com/yourusername/Neutron-ng/issues)
-- Documentation: [Wiki](https://github.com/yourusername/Neutron-ng/wiki)
-- Updates: Follow development progress
-
----
-
-**Made with ⚡ for penetration testers and security professionals**
+For authorized security testing only. Always obtain proper authorization before scanning targets.
