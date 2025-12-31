@@ -161,8 +161,24 @@ impl Dashboard {
         let mut all_urls = Vec::new();
         let mut all_endpoints = Vec::new();
         let mut all_secrets = Vec::new();
+        let mut all_dns_records = Vec::new();
+        let mut all_technologies = Vec::new();
         
-        // 1. Subdomain enumeration
+        // 1. DNS Enumeration
+        display::module_header("DNS Intelligence");
+        match neutron_dns::enumerate_dns_records(target).await {
+            Ok(results) => {
+                display::success(&format!("Found {} DNS records", results.len()));
+                storage.save_dns_records(&results)?;
+                storage.record_module("dns");
+                all_dns_records = results;
+            }
+            Err(e) => {
+                display::error(&format!("DNS enumeration failed: {}", e));
+            }
+        }
+        
+        // 2. Subdomain enumeration
         display::module_header("Subdomain Enumeration");
         match neutron_subdomain::enumerate_subdomains(target, true, true).await {
             Ok(results) => {
@@ -176,7 +192,7 @@ impl Dashboard {
             }
         }
         
-        // 2. URL discovery
+        // 3. URL discovery
         display::module_header("URL Discovery");
         match neutron_url::discover_urls(target, true, false).await {
             Ok(results) => {
@@ -190,7 +206,22 @@ impl Dashboard {
             }
         }
         
-        // 3. JavaScript analysis
+        // 4. Technology Fingerprinting
+        display::module_header("Technology Fingerprinting");
+        let tech_url = format!("https://{}", target);
+        match neutron_tech::identify_technologies(&tech_url).await {
+            Ok(results) => {
+                display::success(&format!("Identified {} technologies", results.len()));
+                storage.save_technologies(&results)?;
+                storage.record_module("technologies");
+                all_technologies = results;
+            }
+            Err(e) => {
+                display::error(&format!("Technology fingerprinting failed: {}", e));
+            }
+        }
+        
+        // 5. JavaScript analysis
         display::module_header("JavaScript Analysis");
         let js_urls = if !all_urls.is_empty() {
             all_urls.iter().take(5).map(|u| u.url.clone()).collect()

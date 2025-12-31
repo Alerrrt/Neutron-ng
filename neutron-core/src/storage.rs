@@ -146,6 +146,30 @@ impl ResultStorage {
         Ok(summary_path)
     }
     
+    /// Save DNS records to file
+    pub fn save_dns_records(&self, results: &[neutron_types::DnsRecord]) -> Result<PathBuf> {
+        let path = self.scan_session.output_directory.join("dns_records.txt");
+        let list: Vec<String> = results.iter()
+            .map(|r| format!("{:6} {}", r.record_type, r.value))
+            .collect();
+        fs::write(&path, list.join("\n"))?;
+        Ok(path)
+    }
+    
+    /// Save technologies to file
+    pub fn save_technologies(&self, results: &[neutron_types::Technology]) -> Result<PathBuf> {
+        let path = self.scan_session.output_directory.join("technologies.txt");
+        let list: Vec<String> = results.iter()
+            .map(|t| {
+                let version = t.version.as_deref().unwrap_or("unknown");
+                format!("[{}] {} {} ({}% confidence)", 
+                    t.category, t.name, version, t.confidence)
+            })
+            .collect();
+        fs::write(&path, list.join("\n"))?;
+        Ok(path)
+    }
+    
     /// Create a summary report
     pub fn create_summary(&self, 
         subdomains: usize, 

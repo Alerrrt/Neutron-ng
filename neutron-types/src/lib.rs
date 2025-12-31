@@ -169,3 +169,20 @@ pub struct ScanMetadata {
     pub targets: Vec<String>,
     pub modules: Vec<ModuleType>,
 }
+
+/// DNS record result
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DnsRecord {
+    pub record_type: String,
+    pub value: String,
+    pub domain: String,
+}
+
+/// Technology fingerprinting result
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Technology {
+    pub name: String,
+    pub version: Option<String>,
+    pub category: String,
+    pub confidence: u8,
+}

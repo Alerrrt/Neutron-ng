@@ -2,11 +2,13 @@
 resolver = "2"
 members = [
     "neutron-ng",
-    "neutron-core",
     "neutron-types",
+    "neutron-core",
     "neutron-subdomain",
     "neutron-url",
     "neutron-js",
+    "neutron-dns",
+    "neutron-tech",
     "neutron-vuln",
     "neutron-cloud",
     "neutron-git",

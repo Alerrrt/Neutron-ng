@@ -1,0 +1,15 @@
+[package]
+name = "neutron-dns"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+
+[dependencies]
+neutron-types = { path = "../neutron-types" }
+
+tokio.workspace = true
+anyhow.workspace = true
+tracing.workspace = true
+trust-dns-resolver.workspace = true
+serde.workspace = true
