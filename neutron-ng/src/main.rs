@@ -188,7 +188,24 @@ async fn main() -> anyhow::Result<()> {
         }
         Commands::Urls { target } => {
             info!("Running URL discovery on: {:?}", target);
-            println!("🌐 URL discovery not yet implemented");
+            
+            for domain in &target {
+                println!("\n🌐 Discovering URLs for: {}", domain);
+                match neutron_url::discover_urls(domain, true, false).await {
+                    Ok(results) => {
+                        println!("\n✅ Found {} URLs:\n", results.len());
+                        for result in results.iter().take(20) {
+                            println!("  {} (source: {})", result.url, result.source);
+                        }
+                        if results.len() > 20 {
+                            println!("\n  ... and {} more URLs", results.len() - 20);
+                        }
+                    }
+                    Err(e) => {
+                        println!("❌ Error: {}", e);
+                    }
+                }
+            }
         }
         Commands::JsAnalyze { target } => {
             info!("Analyzing JavaScript on: {:?}", target);

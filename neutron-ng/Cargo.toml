@@ -9,6 +9,7 @@ license.workspace = true
 neutron-core = { path = "../neutron-core" }
 neutron-types = { path = "../neutron-types" }
 neutron-subdomain = { path = "../neutron-subdomain" }
+neutron-url = { path = "../neutron-url" }
 
 clap.workspace = true
 tokio.workspace = true
