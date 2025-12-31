@@ -170,6 +170,48 @@ impl ResultStorage {
         Ok(path)
     }
     
+    /// Save network intelligence to file
+    pub fn save_network_intel(&self, intel: &neutron_types::NetworkIntelligence) -> Result<PathBuf> {
+        let path = self.scan_session.output_directory.join("network_intel.txt");
+        let mut content = String::new();
+        
+        content.push_str(&format!("# Network Intelligence for {}\n\n", intel.domain));
+        
+        if !intel.asn_numbers.is_empty() {
+            content.push_str("## ASN Numbers\n");
+            for asn in &intel.asn_numbers {
+                content.push_str(&format!("{}\n", asn));
+            }
+            content.push('\n');
+        }
+        
+        if !intel.ip_ranges.is_empty() {
+            content.push_str("## IP Ranges\n");
+            for range in &intel.ip_ranges {
+                content.push_str(&format!("{}\n", range));
+            }
+            content.push('\n');
+        }
+        
+        if !intel.reverse_dns.is_empty() {
+            content.push_str("## Reverse DNS\n");
+            for ptr in &intel.reverse_dns {
+                content.push_str(&format!("{}\n", ptr));
+            }
+            content.push('\n');
+        }
+        
+        if !intel.related_domains.is_empty() {
+            content.push_str("## Related Domains\n");
+            for domain in &intel.related_domains {
+                content.push_str(&format!("{}\n", domain));
+            }
+        }
+        
+        fs::write(&path, content)?;
+        Ok(path)
+    }
+    
     /// Create a summary report
     pub fn create_summary(&self, 
         subdomains: usize, 
