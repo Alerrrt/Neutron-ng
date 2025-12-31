@@ -15,3 +15,6 @@ serde.workspace = true
 anyhow.workspace = true
 tracing.workspace = true
 regex.workspace = true
+lazy_static.workspace = true
+url.workspace = true
+scraper.workspace = true

@@ -209,7 +209,58 @@ async fn main() -> anyhow::Result<()> {
         }
         Commands::JsAnalyze { target } => {
             info!("Analyzing JavaScript on: {:?}", target);
-            println!("📜 JavaScript analysis not yet implemented");
+            
+            for url in &target {
+                println!("\n📜 Analyzing JavaScript for: {}", url);
+                
+                // For JS analysis, we need URLs to analyze
+                // If provided with a domain, construct a URL
+                let urls = if url.starts_with("http") {
+                    vec![url.clone()]
+                } else {
+                    vec![format!("https://{}", url)]
+                };
+                
+                match neutron_js::analyze_javascript(&urls).await {
+                    Ok((endpoints, secrets)) => {
+                        println!("\n✅ Analysis complete!");
+                        
+                        if !endpoints.is_empty() {
+                            println!("\n🔗 Found {} API endpoints:\n", endpoints.len());
+                            for endpoint in endpoints.iter().take(15) {
+                                println!("  {} (from: {})", endpoint.endpoint, endpoint.source_url);
+                            }
+                            if endpoints.len() > 15 {
+                                println!("\n  ... and {} more endpoints", endpoints.len() - 15);
+                            }
+                        } else {
+                            println!("\nNo endpoints found");
+                        }
+                        
+                        if !secrets.is_empty() {
+                            println!("\n🔑 Found {} potential secrets:\n", secrets.len());
+                            for secret in secrets.iter().take(10) {
+                                let confidence_pct = (secret.confidence * 100.0) as u32;
+                                println!("  [{}%] {} - {} chars (from: {})", 
+                                    confidence_pct,
+                                    secret.secret_type,
+                                    secret.value.len(),
+                                    secret.source_url
+                                );
+                            }
+                            if secrets.len() > 10 {
+                                println!("\n  ... and {} more secrets", secrets.len() - 10);
+                            }
+                            println!("\n⚠️  WARNING: Review secrets manually - may contain false positives");
+                        } else {
+                            println!("\nNo secrets found");
+                        }
+                    }
+                    Err(e) => {
+                        println!("❌ Error: {}", e);
+                    }
+                }
+            }
         }
         Commands::VulnScan { target } => {
             info!("Scanning for vulnerabilities on: {:?}", target);
