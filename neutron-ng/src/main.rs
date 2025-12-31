@@ -4,6 +4,7 @@ use tracing_subscriber::FmtSubscriber;
 
 mod cli;
 use cli::display;
+use cli::dashboard::Dashboard;
 
 #[derive(Parser)]
 #[command(name = "neutron-ng")]
@@ -11,7 +12,7 @@ use cli::display;
 #[command(version)]
 struct Cli {
     #[command(subcommand)]
-    command: Commands,
+    command: Option<Commands>,
 
     /// Enable verbose logging
     #[arg(short, long, global = true)]
@@ -138,8 +139,14 @@ async fn main() -> anyhow::Result<()> {
     // Display banner
     display::display_banner();
     info!("Neutron-ng v{} starting...", env!("CARGO_PKG_VERSION"));
+    
+    // If no command provided, launch interactive dashboard
+    if cli.command.is_none() {
+        let mut dashboard = Dashboard::new();
+        return dashboard.run().await;
+    }
 
-    match cli.command {
+    match cli.command.unwrap() {
         Commands::Scan { target, output, format } => {
             info!("Running comprehensive scan on targets: {:?}", target);
             info!("Output directory: {}", output);
