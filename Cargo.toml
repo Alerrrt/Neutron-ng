@@ -13,7 +13,6 @@ members = [
     "neutron-vuln",
     "neutron-cloud",
     "neutron-git",
-    "neutron-web",
 ]
 
 [workspace.package]

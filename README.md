@@ -65,6 +65,44 @@ Neutron-ng is a comprehensive, high-performance reconnaissance toolkit built in 
 - **Reverse IP**: Find other domains on same infrastructure
 - **IP-to-ASN Mapping**: Complete infrastructure correlation
 
+## Why Neutron-ng for Pentesters?
+
+### ⚡ Speed & Efficiency
+- **Fast**: Complete reconnaissance in minutes, not hours
+- **Concurrent**: Async I/O for maximum throughput
+- **Lightweight**: Single binary, no heavy dependencies
+- **Offline-Capable**: Works without internet for cached data
+
+### 🎯 Penetration Testing Workflow
+```
+1. Initial Recon     → Quick subdomain + DNS enumeration
+2. Surface Mapping   → URL discovery + technology detection
+3. Asset Discovery   → Network intel + JavaScript analysis
+4. Attack Surface    → Combine and correlate all findings
+5. Export Results    → Clean TXT files for reporting
+```
+
+### 📊 Output Optimized for Reports
+- **TXT Format**: Easy to grep, parse, and include in reports
+- **Organized**: Each finding categorized by type
+- **No Noise**: Deduplicated and verified results only
+- **Professional**: Ready for client deliverables
+
+### 🔧 Integration-Friendly
+```bash
+# Pipe to other tools
+neutron-ng subdomains -t example.com | nuclei -t cves/
+
+# Chain with other recon
+neutron-ng scan -t target.com && cat target.com/urls.txt | httpx -silent
+
+# Grep for specific patterns
+grep "admin" target.com/*.txt
+
+# Generate reports
+cat target.com/SUMMARY.txt >> final_report.md
+```
+
 ## Installation
 
 ### Prerequisites
