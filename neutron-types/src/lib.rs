@@ -186,3 +186,13 @@ pub struct Technology {
     pub category: String,
     pub confidence: u8,
 }
+
+/// Network intelligence result
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct NetworkIntelligence {
+    pub domain: String,
+    pub asn_numbers: Vec<String>,
+    pub ip_ranges: Vec<String>,
+    pub reverse_dns: Vec<String>,
+    pub related_domains: Vec<String>,
+}
