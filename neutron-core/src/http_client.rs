@@ -6,6 +6,7 @@ use std::time::{Duration, Instant};
 use tokio::sync::Semaphore;
 
 /// HTTP client with rate limiting and connection pooling
+#[derive(Clone)]
 pub struct HttpClient {
     client: Client,
     rate_limiter: Arc<RateLimiter>,

@@ -123,7 +123,8 @@ enum ConfigAction {
     },
 }
 
-fn main() -> anyhow::Result<()> {
+#[tokio::main]
+async fn main() -> anyhow::Result<()> {
     let cli = Cli::parse();
 
     // Initialize logging
@@ -140,11 +141,50 @@ fn main() -> anyhow::Result<()> {
             info!("Running comprehensive scan on targets: {:?}", target);
             info!("Output directory: {}", output);
             info!("Output formats: {:?}", format);
-            println!("🚀 Scan functionality not yet implemented");
+            
+            // For now, just run subdomain enumeration as part of scan
+            for domain in &target {
+                match neutron_subdomain::enumerate_subdomains(domain, true, true).await {
+                    Ok(results) => {
+                        println!("✅ Found {} subdomains for {}", results.len(), domain);
+                        for result in results.iter().take(10) {
+                            println!("  - {} ({:?})", result.subdomain, result.resolved_ips);
+                        }
+                        if results.len() > 10 {
+                            println!("  ... and {} more", results.len() - 10);
+                        }
+                    }
+                    Err(e) => {
+                        println!("❌ Error scanning {}: {}", domain, e);
+                    }
+                }
+            }
         }
         Commands::Subdomains { target } => {
             info!("Running subdomain enumeration on: {:?}", target);
-            println!("🔍 Subdomain enumeration not yet implemented");
+            
+            for domain in &target {
+                println!("\n🔍 Enumerating subdomains for: {}", domain);
+                match neutron_subdomain::enumerate_subdomains(domain, true, true).await {
+                    Ok(results) => {
+                        println!("\n✅ Found {} subdomains:\n", results.len());
+                        for result in &results {
+                            if result.resolved_ips.is_empty() {
+                                println!("  {} (source: {})", result.subdomain, result.source);
+                            } else {
+                                println!("  {} → {} (source: {})", 
+                                    result.subdomain, 
+                                    result.resolved_ips.join(", "),
+                                    result.source
+                                );
+                            }
+                        }
+                    }
+                    Err(e) => {
+                        println!("❌ Error: {}", e);
+                    }
+                }
+            }
         }
         Commands::Urls { target } => {
             info!("Running URL discovery on: {:?}", target);
