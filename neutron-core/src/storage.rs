@@ -27,15 +27,14 @@ impl ResultStorage {
         let base_dir = if let Some(dir) = output_dir {
             PathBuf::from(dir)
         } else {
-            PathBuf::from("./results")
+            // Save in current directory instead of ./results
+            PathBuf::from(".")
         };
         
-        // Create scan ID from target and timestamp
+        // Simple folder name: just the sanitized target (no timestamp)
+        let scan_id = sanitize_target(target);
+        
         let timestamp = Utc::now();
-        let scan_id = format!("{}-{}", 
-            sanitize_target(target),
-            timestamp.format("%Y%m%d-%H%M%S")
-        );
         
         // Create scan directory
         let scan_dir = base_dir.join(&scan_id);
@@ -86,54 +85,48 @@ impl ResultStorage {
     
     /// Save subdomains to file
     pub fn save_subdomains(&self, results: &[neutron_types::SubdomainResult]) -> Result<PathBuf> {
-        let path = self.scan_session.output_directory.join("subdomains.json");
-        let json = serde_json::to_string_pretty(&results)?;
-        fs::write(&path, json)?;
-        
-        // Also save as a simple list
+        // Save as a simple list
         let list_path = self.scan_session.output_directory.join("subdomains.txt");
-        let list: Vec<String> = results.iter().map(|r| r.subdomain.clone()).collect();
+        let list: Vec<String> = results.iter()
+            .map(|r| format!("{} → {} ({})", 
+                r.subdomain, 
+                r.resolved_ips.join(", "),
+                r.source
+            ))
+            .collect();
         fs::write(&list_path, list.join("\n"))?;
         
-        Ok(path)
+        Ok(list_path)
     }
     
     /// Save URLs to file
     pub fn save_urls(&self, results: &[neutron_types::UrlResult]) -> Result<PathBuf> {
-        let path = self.scan_session.output_directory.join("urls.json");
-        let json = serde_json::to_string_pretty(&results)?;
-        fs::write(&path, json)?;
-        
-        // Also save as a simple list
+        // Save as a simple list
         let list_path = self.scan_session.output_directory.join("urls.txt");
-        let list: Vec<String> = results.iter().map(|r| r.url.clone()).collect();
+        let list: Vec<String> = results.iter()
+            .map(|r| format!("{} ({})", r.url, r.source))
+            .collect();
         fs::write(&list_path, list.join("\n"))?;
         
-        Ok(path)
+        Ok(list_path)
     }
     
     /// Save JavaScript endpoints to file
     pub fn save_js_endpoints(&self, results: &[neutron_types::JsEndpointResult]) -> Result<PathBuf> {
-        let path = self.scan_session.output_directory.join("js_endpoints.json");
-        let json = serde_json::to_string_pretty(&results)?;
-        fs::write(&path, json)?;
-        
-        // Also save as a simple list
+        // Save as a simple list
         let list_path = self.scan_session.output_directory.join("js_endpoints.txt");
-        let list: Vec<String> = results.iter().map(|r| r.endpoint.clone()).collect();
+        let list: Vec<String> = results.iter()
+            .map(|r| format!("{} (from: {})", r.endpoint, r.source_url))
+            .collect();
         fs::write(&list_path, list.join("\n"))?;
         
-        Ok(path)
+        Ok(list_path)
     }
     
     /// Save secrets to file
     pub fn save_secrets(&self, results: &[neutron_types::SecretResult]) -> Result<PathBuf> {
-        let path = self.scan_session.output_directory.join("secrets.json");
-        let json = serde_json::to_string_pretty(&results)?;
-        fs::write(&path, json)?;
-        
-        // Also save summary
-        let summary_path = self.scan_session.output_directory.join("secrets_summary.txt");
+        // Save summary
+        let summary_path = self.scan_session.output_directory.join("secrets.txt");
         let mut summary = String::new();
         summary.push_str(&format!("# Secrets Found: {}\n\n", results.len()));
         
@@ -150,7 +143,7 @@ impl ResultStorage {
         
         fs::write(&summary_path, summary)?;
         
-        Ok(path)
+        Ok(summary_path)
     }
     
     /// Create a summary report
@@ -184,10 +177,10 @@ Duration: {}
 - Secrets: {}
 
 ## Files Generated
-- subdomains.json / subdomains.txt
-- urls.json / urls.txt
-- js_endpoints.json / js_endpoints.txt
-- secrets.json / secrets_summary.txt
+- subdomains.txt
+- urls.txt
+- js_endpoints.txt
+- secrets.txt
 - scan_metadata.json
 
 ## Modules Run

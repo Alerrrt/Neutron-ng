@@ -32,7 +32,7 @@ enum Commands {
         target: Vec<String>,
 
         /// Output directory
-        #[arg(short, long, default_value = "./results")]
+        #[arg(short, long, default_value = ".")]
         output: String,
 
         /// Output format(s)
