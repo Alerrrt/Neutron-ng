@@ -142,22 +142,86 @@ async fn main() -> anyhow::Result<()> {
             info!("Output directory: {}", output);
             info!("Output formats: {:?}", format);
             
-            // For now, just run subdomain enumeration as part of scan
             for domain in &target {
+                println!("\n🚀 Starting comprehensive scan for: {}", domain);
+                
+                // Create result storage
+                let mut storage = neutron_core::ResultStorage::new(domain, Some(&output))?;
+                println!("📁 Results will be saved to: {}", storage.scan_dir().display());
+                println!("🆔 Scan ID: {}\n", storage.scan_id());
+                
+                let mut all_subdomains = Vec::new();
+                let mut all_urls = Vec::new();
+                let mut all_endpoints = Vec::new();
+                let mut all_secrets = Vec::new();
+                
+                // 1. Subdomain enumeration
+                println!("🔍 Phase 1: Subdomain Enumeration");
                 match neutron_subdomain::enumerate_subdomains(domain, true, true).await {
                     Ok(results) => {
-                        println!("✅ Found {} subdomains for {}", results.len(), domain);
-                        for result in results.iter().take(10) {
-                            println!("  - {} ({:?})", result.subdomain, result.resolved_ips);
-                        }
-                        if results.len() > 10 {
-                            println!("  ... and {} more", results.len() - 10);
-                        }
+                        println!("  ✅ Found {} subdomains", results.len());
+                        storage.save_subdomains(&results)?;
+                        storage.record_module("subdomains");
+                        all_subdomains = results;
                     }
                     Err(e) => {
-                        println!("❌ Error scanning {}: {}", domain, e);
+                        println!("  ❌ Error: {}", e);
                     }
                 }
+                
+                // 2. URL discovery
+                println!("\n🌐 Phase 2: URL Discovery");
+                match neutron_url::discover_urls(domain, true, false).await {
+                    Ok(results) => {
+                        println!("  ✅ Found {} URLs", results.len());
+                        storage.save_urls(&results)?;
+                        storage.record_module("urls");
+                        all_urls = results;
+                    }
+                    Err(e) => {
+                        println!("  ❌ Error: {}", e);
+                    }
+                }
+                
+                // 3. JavaScript analysis (use discovered URLs or construct from domain)
+                println!("\n📜 Phase 3: JavaScript Analysis");
+                let js_urls = if !all_urls.is_empty() {
+                    all_urls.iter().take(5).map(|u| u.url.clone()).collect()
+                } else {
+                    vec![format!("https://{}", domain)]
+                };
+                
+                match neutron_js::analyze_javascript(&js_urls).await {
+                    Ok((endpoints, secrets)) => {
+                        println!("  ✅ Found {} endpoints, {} secrets", endpoints.len(), secrets.len());
+                        storage.save_js_endpoints(&endpoints)?;
+                        storage.save_secrets(&secrets)?;
+                        storage.record_module("javascript");
+                        all_endpoints = endpoints;
+                        all_secrets = secrets;
+                    }
+                    Err(e) => {
+                        println!("  ❌ Error: {}", e);
+                    }
+                }
+                
+                // Create summary
+                storage.create_summary(
+                    all_subdomains.len(),
+                    all_urls.len(),
+                    all_endpoints.len(),
+                    all_secrets.len(),
+                )?;
+                storage.finalize()?;
+                
+                println!("\n✅ Scan complete!");
+                println!("📊 Summary:");
+                println!("   - {} subdomains", all_subdomains.len());
+                println!("   - {} URLs", all_urls.len());
+                println!("   - {} JS endpoints", all_endpoints.len());
+                println!("   - {} potential secrets", all_secrets.len());
+                println!("\n📁 All results saved to: {}", storage.scan_dir().display());
+                println!("📄 View SUMMARY.txt for details");
             }
         }
         Commands::Subdomains { target } => {
