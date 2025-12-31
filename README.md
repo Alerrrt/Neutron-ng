@@ -1,8 +1,8 @@
 # Neutron-ng
 
-**Advanced Reconnaissance Engine for Bug Bounty Hunters & Security Researchers**
+**Professional CLI Reconnaissance Tool for Penetration Testers**
 
-Neutron-ng is a comprehensive, high-performance reconnaissance toolkit built in Rust. It combines 30+ passive and active enumeration techniques to map your target's complete attack surface.
+Neutron-ng is a high-performance, command-line reconnaissance toolkit built in Rust. Designed specifically for penetration testers and security professionals, it combines 30+ enumeration techniques to efficiently map target attack surfaces during security assessments.
 
 ```
 ╔═══════════════════════════════════════════════════════════════════════════════╗
@@ -14,6 +14,8 @@ Neutron-ng is a comprehensive, high-performance reconnaissance toolkit built in 
 ║   ╚═╝  ╚═══╝╚══════╝ ╚═════╝    ╚═╝   ╚═╝  ╚═╝ ╚═════╝ ╚═╝  ╚═══╝           ║
 ╚═══════════════════════════════════════════════════════════════════════════════╝
 ```
+
+**Pure CLI. No Web Interface. Built for the Terminal.**
 
 ## Features
 
@@ -354,4 +356,4 @@ Inspired by industry-standard tools:
 
 ---
 
-**Made with ⚡ for the bug bounty community**
+**Made with ⚡ for penetration testers and security professionals**
