@@ -3,6 +3,7 @@ use tracing::{info, Level};
 use tracing_subscriber::FmtSubscriber;
 
 mod cli;
+use cli::display;
 
 #[derive(Parser)]
 #[command(name = "neutron-ng")]
@@ -134,6 +135,8 @@ async fn main() -> anyhow::Result<()> {
         .finish();
     tracing::subscriber::set_global_default(subscriber)?;
 
+    // Display banner
+    display::display_banner();
     info!("Neutron-ng v{} starting...", env!("CARGO_PKG_VERSION"));
 
     match cli.command {
@@ -142,13 +145,19 @@ async fn main() -> anyhow::Result<()> {
             info!("Output directory: {}", output);
             info!("Output formats: {:?}", format);
             
+            // Check and prompt for API keys
+            display::section_header("API KEY CONFIGURATION");
+            display::prompt_api_key("VirusTotal", "NEUTRON_VIRUSTOTAL_API_KEY");
+            display::prompt_api_key("SecurityTrails", "NEUTRON_SECURITYTRAILS_API_KEY");
+            display::prompt_api_key("Project Discovery Chaos", "NEUTRON_CHAOS_API_KEY");
+            
             for domain in &target {
-                println!("\n🚀 Starting comprehensive scan for: {}", domain);
+                display::section_header(&format!("SCANNING TARGET: {}", domain));
                 
                 // Create result storage
                 let mut storage = neutron_core::ResultStorage::new(domain, Some(&output))?;
-                println!("📁 Results will be saved to: {}", storage.scan_dir().display());
-                println!("🆔 Scan ID: {}\n", storage.scan_id());
+                display::status("Output Directory", &storage.scan_dir().display().to_string());
+                display::status("Scan ID", storage.scan_id());
                 
                 let mut all_subdomains = Vec::new();
                 let mut all_urls = Vec::new();
@@ -156,35 +165,35 @@ async fn main() -> anyhow::Result<()> {
                 let mut all_secrets = Vec::new();
                 
                 // 1. Subdomain enumeration
-                println!("🔍 Phase 1: Subdomain Enumeration");
+                display::module_header("Subdomain Enumeration");
                 match neutron_subdomain::enumerate_subdomains(domain, true, true).await {
                     Ok(results) => {
-                        println!("  ✅ Found {} subdomains", results.len());
+                        display::success(&format!("Found {} subdomains", results.len()));
                         storage.save_subdomains(&results)?;
                         storage.record_module("subdomains");
                         all_subdomains = results;
                     }
                     Err(e) => {
-                        println!("  ❌ Error: {}", e);
+                        display::error(&format!("Subdomain enumeration failed: {}", e));
                     }
                 }
                 
                 // 2. URL discovery
-                println!("\n🌐 Phase 2: URL Discovery");
+                display::module_header("URL Discovery");
                 match neutron_url::discover_urls(domain, true, false).await {
                     Ok(results) => {
-                        println!("  ✅ Found {} URLs", results.len());
+                        display::success(&format!("Found {} URLs", results.len()));
                         storage.save_urls(&results)?;
                         storage.record_module("urls");
                         all_urls = results;
                     }
                     Err(e) => {
-                        println!("  ❌ Error: {}", e);
+                        display::error(&format!("URL discovery failed: {}", e));
                     }
                 }
                 
                 // 3. JavaScript analysis (use discovered URLs or construct from domain)
-                println!("\n📜 Phase 3: JavaScript Analysis");
+                display::module_header("JavaScript Analysis");
                 let js_urls = if !all_urls.is_empty() {
                     all_urls.iter().take(5).map(|u| u.url.clone()).collect()
                 } else {
@@ -193,7 +202,7 @@ async fn main() -> anyhow::Result<()> {
                 
                 match neutron_js::analyze_javascript(&js_urls).await {
                     Ok((endpoints, secrets)) => {
-                        println!("  ✅ Found {} endpoints, {} secrets", endpoints.len(), secrets.len());
+                        display::success(&format!("Found {} endpoints, {} secrets", endpoints.len(), secrets.len()));
                         storage.save_js_endpoints(&endpoints)?;
                         storage.save_secrets(&secrets)?;
                         storage.record_module("javascript");
@@ -201,7 +210,7 @@ async fn main() -> anyhow::Result<()> {
                         all_secrets = secrets;
                     }
                     Err(e) => {
-                        println!("  ❌ Error: {}", e);
+                        display::error(&format!("JavaScript analysis failed: {}", e));
                     }
                 }
                 
@@ -214,38 +223,40 @@ async fn main() -> anyhow::Result<()> {
                 )?;
                 storage.finalize()?;
                 
-                println!("\n✅ Scan complete!");
-                println!("📊 Summary:");
-                println!("   - {} subdomains", all_subdomains.len());
-                println!("   - {} URLs", all_urls.len());
-                println!("   - {} JS endpoints", all_endpoints.len());
-                println!("   - {} potential secrets", all_secrets.len());
-                println!("\n📁 All results saved to: {}", storage.scan_dir().display());
-                println!("📄 View SUMMARY.txt for details");
+                // Display results
+                display::results_summary(
+                    all_subdomains.len(),
+                    all_urls.len(),
+                    all_endpoints.len(),
+                    all_secrets.len(),
+                );
+                
+                display::info(&format!("Results saved to: {}", storage.scan_dir().display()));
+                display::info("View SUMMARY.txt for detailed report");
             }
         }
         Commands::Subdomains { target } => {
             info!("Running subdomain enumeration on: {:?}", target);
             
             for domain in &target {
-                println!("\n🔍 Enumerating subdomains for: {}", domain);
+                display::section_header(&format!("SUBDOMAIN ENUMERATION: {}", domain));
                 match neutron_subdomain::enumerate_subdomains(domain, true, true).await {
                     Ok(results) => {
-                        println!("\n✅ Found {} subdomains:\n", results.len());
+                        display::success(&format!("Found {} subdomains", results.len()));
+                        println!();
+                        display::table_header("Subdomain", "Resolved IPs", "Source");
                         for result in &results {
-                            if result.resolved_ips.is_empty() {
-                                println!("  {} (source: {})", result.subdomain, result.source);
+                            let ips = if result.resolved_ips.is_empty() {
+                                "N/A".to_string()
                             } else {
-                                println!("  {} → {} (source: {})", 
-                                    result.subdomain, 
-                                    result.resolved_ips.join(", "),
-                                    result.source
-                                );
-                            }
+                                result.resolved_ips.join(", ")
+                            };
+                            display::table_row(&result.subdomain, &ips, &result.source);
                         }
+                        display::table_footer();
                     }
                     Err(e) => {
-                        println!("❌ Error: {}", e);
+                        display::error(&format!("Enumeration failed: {}", e));
                     }
                 }
             }
@@ -254,19 +265,20 @@ async fn main() -> anyhow::Result<()> {
             info!("Running URL discovery on: {:?}", target);
             
             for domain in &target {
-                println!("\n🌐 Discovering URLs for: {}", domain);
+                display::section_header(&format!("URL DISCOVERY: {}", domain));
                 match neutron_url::discover_urls(domain, true, false).await {
                     Ok(results) => {
-                        println!("\n✅ Found {} URLs:\n", results.len());
+                        display::success(&format!("Found {} URLs", results.len()));
+                        println!();
                         for result in results.iter().take(20) {
-                            println!("  {} (source: {})", result.url, result.source);
+                            display::info(&format!("{} (source: {})", result.url, result.source));
                         }
                         if results.len() > 20 {
-                            println!("\n  ... and {} more URLs", results.len() - 20);
+                            display::info(&format!("... and {} more URLs", results.len() - 20));
                         }
                     }
                     Err(e) => {
-                        println!("❌ Error: {}", e);
+                        display::error(&format!("URL discovery failed: {}", e));
                     }
                 }
             }
@@ -275,10 +287,9 @@ async fn main() -> anyhow::Result<()> {
             info!("Analyzing JavaScript on: {:?}", target);
             
             for url in &target {
-                println!("\n📜 Analyzing JavaScript for: {}", url);
+                display::section_header(&format!("JAVASCRIPT ANALYSIS: {}", url));
                 
                 // For JS analysis, we need URLs to analyze
-                // If provided with a domain, construct a URL
                 let urls = if url.starts_with("http") {
                     vec![url.clone()]
                 } else {
@@ -287,75 +298,82 @@ async fn main() -> anyhow::Result<()> {
                 
                 match neutron_js::analyze_javascript(&urls).await {
                     Ok((endpoints, secrets)) => {
-                        println!("\n✅ Analysis complete!");
+                        display::success("Analysis complete");
                         
                         if !endpoints.is_empty() {
-                            println!("\n🔗 Found {} API endpoints:\n", endpoints.len());
+                            println!();
+                            display::module_header(&format!("API Endpoints: {}", endpoints.len()));
                             for endpoint in endpoints.iter().take(15) {
-                                println!("  {} (from: {})", endpoint.endpoint, endpoint.source_url);
+                                display::info(&format!("{} (from: {})", endpoint.endpoint, endpoint.source_url));
                             }
                             if endpoints.len() > 15 {
-                                println!("\n  ... and {} more endpoints", endpoints.len() - 15);
+                                display::info(&format!("... and {} more endpoints", endpoints.len() - 15));
                             }
                         } else {
-                            println!("\nNo endpoints found");
+                            display::warning("No endpoints found");
                         }
                         
                         if !secrets.is_empty() {
-                            println!("\n🔑 Found {} potential secrets:\n", secrets.len());
+                            println!();
+                            display::module_header(&format!("Potential Secrets: {}", secrets.len()));
                             for secret in secrets.iter().take(10) {
                                 let confidence_pct = (secret.confidence * 100.0) as u32;
-                                println!("  [{}%] {} - {} chars (from: {})", 
+                                display::info(&format!("[{}%] {} - {} chars (from: {})", 
                                     confidence_pct,
                                     secret.secret_type,
                                     secret.value.len(),
                                     secret.source_url
-                                );
+                                ));
                             }
                             if secrets.len() > 10 {
-                                println!("\n  ... and {} more secrets", secrets.len() - 10);
+                                display::info(&format!("... and {} more secrets", secrets.len() - 10));
                             }
-                            println!("\n⚠️  WARNING: Review secrets manually - may contain false positives");
+                            display::warning("Review secrets manually - may contain false positives");
                         } else {
-                            println!("\nNo secrets found");
+                            display::info("No secrets found");
                         }
                     }
                     Err(e) => {
-                        println!("❌ Error: {}", e);
+                        display::error(&format!("Analysis failed: {}", e));
                     }
                 }
             }
         }
         Commands::VulnScan { target } => {
             info!("Scanning for vulnerabilities on: {:?}", target);
-            println!("🔒 Vulnerability scanning not yet implemented");
+            display::section_header("VULNERABILITY SCANNING");
+            display::warning("Vulnerability scanning not yet implemented");
         }
         Commands::CloudScan { target } => {
             info!("Scanning cloud infrastructure for: {:?}", target);
-            println!("☁️ Cloud scanning not yet implemented");
+            display::section_header("CLOUD SCANNING");
+            display::warning("Cloud scanning not yet implemented");
         }
         Commands::Web { port, bind } => {
             info!("Starting web interface on {}:{}", bind, port);
-            println!("🌍 Web interface not yet implemented");
+            display::section_header("WEB INTERFACE");
+            display::warning("Web interface not yet implemented");
         }
         Commands::Config { action } => {
+            display::section_header("CONFIGURATION MANAGEMENT");
             match action {
                 ConfigAction::Show => {
-                    println!("📋 Configuration display not yet implemented");
+                    display::warning("Configuration display not yet implemented");
                 }
                 ConfigAction::Set { key, value } => {
                     info!("Setting config: {} = {}", key, value);
-                    println!("✅ Configuration update not yet implemented");
+                    display::warning("Configuration update not yet implemented");
                 }
                 ConfigAction::Validate { path } => {
                     info!("Validating configuration at: {}", path);
-                    println!("✔️ Configuration validation not yet implemented");
+                    display::warning("Configuration validation not yet implemented");
                 }
             }
         }
         Commands::Report { scan_id, format } => {
             info!("Generating {} report for scan: {}", format, scan_id);
-            println!("📊 Report generation not yet implemented");
+            display::section_header("REPORT GENERATION");
+            display::warning("Report generation not yet implemented");
         }
     }
 
