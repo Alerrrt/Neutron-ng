@@ -1,0 +1,81 @@
+[workspace]
+resolver = "2"
+members = [
+    "neutron-ng",
+    "neutron-core",
+    "neutron-types",
+    "neutron-subdomain",
+    "neutron-url",
+    "neutron-js",
+    "neutron-vuln",
+    "neutron-cloud",
+    "neutron-git",
+    "neutron-web",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+authors = ["Rick <ajinisadev@proton.me>"]
+license = "MIT"
+repository = "https://github.com/alerrrt/neutron-ng"
+
+[workspace.dependencies]
+# Async runtime
+tokio = { version = "1.35", features = ["full"] }
+tokio-util = "0.7"
+
+# HTTP client
+reqwest = { version = "0.11", features = ["json", "cookies", "gzip"] }
+hyper = "1.0"
+
+# Serialization
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+toml = "0.8"
+
+# CLI
+clap = { version = "4.4", features = ["derive", "cargo", "env"] }
+colored = "2.1"
+indicatif = "0.17"
+
+# Database
+sqlx = { version = "0.7", features = ["runtime-tokio-rustls", "sqlite"] }
+
+# Networking
+trust-dns-resolver = "0.23"
+url = "2.5"
+
+# Regex and parsing
+regex = "1.10"
+lazy_static = "1.4"
+scraper = "0.18"
+
+# Concurrency
+rayon = "1.8"
+dashmap = "5.5"
+futures = "0.3"
+
+# Error handling
+anyhow = "1.0"
+thiserror = "1.0"
+
+# Logging and tracing
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
+tracing-appender = "0.2"
+
+# Web framework
+axum = "0.7"
+tower = "0.4"
+tower-http = { version = "0.5", features = ["fs", "compression-gzip", "cors"] }
+
+# TLS
+rustls = "0.22"
+rustls-pemfile = "2.0"
+
+# Utilities
+chrono = { version = "0.4", features = ["serde"] }
+uuid = { version = "1.6", features = ["v4", "serde"] }
+rand = "0.8"
+base64 = "0.21"

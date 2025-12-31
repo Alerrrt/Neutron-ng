@@ -1,0 +1,37 @@
+# Rust
+/target
+**/*.rs.bk
+*.pdb
+Cargo.lock
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Logs
+*.log
+logs/
+
+# Config with API keys
+config/*.toml
+!config/config.example.toml
+
+# Build artifacts
+dist/
+build/
+*.deb
+
+# Test results and output
+results/
+output/
+scans/
+

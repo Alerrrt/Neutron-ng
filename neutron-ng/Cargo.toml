@@ -1,0 +1,24 @@
+[package]
+name = "neutron-ng"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+
+[dependencies]
+neutron-core = { path = "../neutron-core" }
+neutron-types = { path = "../neutron-types" }
+
+clap.workspace = true
+tokio.workspace = true
+anyhow.workspace = true
+tracing.workspace = true
+tracing-subscriber.workspace = true
+colored.workspace = true
+indicatif.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+
+[[bin]]
+name = "neutron-ng"
+path = "src/main.rs"

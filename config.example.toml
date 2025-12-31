@@ -1,0 +1,54 @@
+# Neutron-ng Configuration Example
+# Copy this file to ~/.config/neutron-ng/config.toml or ./neutron-ng.toml
+
+[general]
+# Request timeout in seconds
+timeout = 30
+
+# Number of concurrent workers
+concurrency = 50
+
+# Global rate limit (requests per second)
+rate_limit = 100
+
+# Proxy configuration (optional)
+# proxy = "http://127.0.0.1:8080"
+
+# Custom user agent (default: "Neutron-ng/VERSION")
+# user_agent = "Mozilla/5.0 (Custom Agent)"
+
+[api_keys]
+# SecurityTrails API key (subdomain enumeration)
+# securitytrails = "your-api-key-here"
+
+# VirusTotal API key (subdomain + file analysis)
+# virustotal = "your-api-key-here"
+
+# Shodan API key (infrastructure intel)
+# shodan = "your-api-key-here"
+
+# Censys API (certificate data)
+# censys = "your-api-key-here"
+
+# Project Discovery Chaos API
+# chaos = "your-api-key-here"
+
+# URLScan.io API
+# urlscan = "your-api-key-here"
+
+# GitHub API (for higher rate limits)
+# github = "your-github-token"
+
+[modules]
+# Enabled modules (leave empty to enable all)
+enabled = []
+
+# Disabled modules
+disabled = []
+
+[output]
+# Default output format: json, html, csv, console
+default_format = "json"
+
+# Output directory
+directory = "./results"
