@@ -72,7 +72,10 @@ pub async fn analyze_javascript_advanced(
     results.secrets = secrets::hunt_secrets(&js_files).await?;
     
     // Advanced pattern extraction from all JS files
-    for (url, content) in &js_files {
+    for js_file in &js_files {
+        let url = &js_file.url;
+        let content = &js_file.content;
+        
         // GraphQL endpoints
         let graphql = advanced_patterns::extract_graphql_endpoints(content);
         results.graphql_endpoints.extend(graphql);
