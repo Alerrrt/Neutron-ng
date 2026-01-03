@@ -10,9 +10,6 @@ members = [
     "neutron-dns",
     "neutron-tech",
     "neutron-network",
-    "neutron-vuln",
-    "neutron-cloud",
-    "neutron-git",
 ]
 
 [workspace.package]
