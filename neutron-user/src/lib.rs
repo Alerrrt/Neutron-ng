@@ -106,7 +106,8 @@ async fn check_site(client: &HttpClient, site: &SiteData, username: &str) -> Res
 }
 
 fn load_sites() -> Vec<SiteData> {
-    // A small sample of sites for MVP. 
+    // Curated list of social media and developer platforms
+ 
     // In production, this should be a large JSON list (e.g. from Sherlock/Maigret)
     vec![
         SiteData {

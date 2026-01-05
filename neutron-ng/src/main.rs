@@ -511,7 +511,7 @@ async fn handle_user_search(target: String) -> anyhow::Result<()> {
             }
             display::table_footer();
             
-            // Simple save to file (MVP)
+            // Save results to file
             let filename = format!("{}_profiles.txt", target);
             let mut content = String::new();
             for result in results {
