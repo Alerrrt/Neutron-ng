@@ -1,6 +1,7 @@
 use colored::*;
 
 mod cli;
+mod engine;
 use cli::display;
 use cli::dashboard::Dashboard;
 
@@ -172,8 +173,6 @@ async fn main() -> anyhow::Result<()> {
     match cli.command.unwrap() {
         Commands::Scan { target, output, format } => {
             info!("Running comprehensive scan on targets: {:?}", target);
-            info!("Output directory: {}", output);
-            info!("Output formats: {:?}", format);
             
             // Check and prompt for API keys
             display::section_header("API KEY CONFIGURATION");
@@ -182,87 +181,18 @@ async fn main() -> anyhow::Result<()> {
             display::prompt_api_key("Project Discovery Chaos", "NEUTRON_CHAOS_API_KEY");
             
             for domain in &target {
-                display::section_header(&format!("SCANNING TARGET: {}", domain));
-                
-                // Create result storage
-                let mut storage = neutron_core::ResultStorage::new(domain, Some(&output))?;
-                display::status("Output Directory", &storage.scan_dir().display().to_string());
-                display::status("Scan ID", storage.scan_id());
-                
-                let mut all_subdomains = Vec::new();
-                let mut all_urls = Vec::new();
-                let mut all_endpoints = Vec::new();
-                let mut all_secrets = Vec::new();
-                
-                // 1. Subdomain enumeration
-                display::module_header("Subdomain Enumeration");
-                match neutron_subdomain::enumerate_subdomains(domain, true, true).await {
-                    Ok(results) => {
-                        display::success(&format!("Found {} subdomains", results.len()));
-                        storage.save_subdomains(&results)?;
-                        storage.record_module("subdomains");
-                        all_subdomains = results;
-                    }
-                    Err(e) => {
-                        display::error(&format!("Subdomain enumeration failed: {}", e));
-                    }
-                }
-                
-                // 2. URL discovery
-                display::module_header("URL Discovery");
-                match neutron_url::discover_urls(domain, true, false).await {
-                    Ok(results) => {
-                        display::success(&format!("Found {} URLs", results.len()));
-                        storage.save_urls(&results)?;
-                        storage.record_module("urls");
-                        all_urls = results;
-                    }
-                    Err(e) => {
-                        display::error(&format!("URL discovery failed: {}", e));
-                    }
-                }
-                
-                // 3. JavaScript analysis (use discovered URLs or construct from domain)
-                display::module_header("JavaScript Analysis");
-                let js_urls = if !all_urls.is_empty() {
-                    all_urls.iter().take(5).map(|u| u.url.clone()).collect()
-                } else {
-                    vec![format!("https://{}", domain)]
-                };
-                
-                match neutron_js::analyze_javascript(&js_urls).await {
-                    Ok((endpoints, secrets)) => {
-                        display::success(&format!("Found {} endpoints, {} secrets", endpoints.len(), secrets.len()));
-                        storage.save_js_endpoints(&endpoints)?;
-                        storage.save_secrets(&secrets)?;
-                        storage.record_module("javascript");
-                        all_endpoints = endpoints;
-                        all_secrets = secrets;
-                    }
-                    Err(e) => {
-                        display::error(&format!("JavaScript analysis failed: {}", e));
-                    }
-                }
-                
-                // Create summary
-                storage.create_summary(
-                    all_subdomains.len(),
-                    all_urls.len(),
-                    all_endpoints.len(),
-                    all_secrets.len(),
-                )?;
-                storage.finalize()?;
-                
-                // Display results
-                display::results_summary(
-                    all_subdomains.len(),
-                    all_urls.len(),
-                    all_endpoints.len(),
-                    all_secrets.len(),
+                // Initialize the new Engine
+                // Logic: Default to using PD tools if they are found (implicit "smart" behavior)
+                // Can add a flag later
+                let engine = crate::engine::ScanEngine::new(
+                    domain.clone(),
+                    output.clone(),
+                    true // Enable PD tools integration by default
                 );
                 
-                display::info(&format!("Results saved to: {}", storage.scan_dir().display()));
-                display::info("View SUMMARY.txt for detailed report");
+                if let Err(e) = engine.run().await {
+                   display::error(&format!("Scan failed for {}: {}", domain, e));
+                }
             }
         }
         Commands::Subdomains { target } => {
