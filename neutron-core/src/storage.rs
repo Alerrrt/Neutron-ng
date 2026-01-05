@@ -3,6 +3,7 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use std::fs;
 use std::path::PathBuf;
+use tracing::info;
 
 /// Scan session metadata
 #[derive(Debug, Serialize, Deserialize)]
@@ -17,28 +18,37 @@ pub struct ScanSession {
 
 /// Result storage manager
 pub struct ResultStorage {
-    base_dir: PathBuf,
+    base_dir: PathBuf, // This will now be the domain_dir
     scan_session: ScanSession,
 }
 
 impl ResultStorage {
-    /// Create a new result storage for a scan
-    pub fn new(target: &str, output_dir: Option<&str>) -> Result<Self> {
-        let base_dir = if let Some(dir) = output_dir {
+    /// Create a new result storage system
+    /// Creates directory structure: <base_dir>/<sanitized_domain>/<scan_id>/
+    pub fn new(target: &str, base_output_dir: Option<&str>) -> Result<Self> {
+        let timestamp = Utc::now();
+        let scan_id = timestamp.format("%Y%m%d_%H%M%S").to_string();
+        
+        // Sanitize domain for folder name
+        let sanitized_domain = sanitize_target(target);
+        
+        // Determine the base output directory
+        let base_dir = if let Some(dir) = base_output_dir {
             PathBuf::from(dir)
         } else {
-            // Save in current directory instead of ./results
-            PathBuf::from(".")
+            PathBuf::from("./results")
         };
         
-        // Simple folder name: just the sanitized target (no timestamp)
-        let scan_id = sanitize_target(target);
+        // Domain-specific directory: <base_dir>/<sanitized_domain>/
+        let domain_dir = base_dir.join(&sanitized_domain);
+        // Scan-specific directory: <base_dir>/<sanitized_domain>/<scan_id>/
+        let scan_dir = domain_dir.join(&scan_id);
         
-        let timestamp = Utc::now();
-        
-        // Create scan directory
-        let scan_dir = base_dir.join(&scan_id);
+        // Create the full directory structure
         fs::create_dir_all(&scan_dir)?;
+        
+        info!("📁 Results will be saved to: {}", scan_dir.display());
+        println!("\n  📁 Output Directory: {}\n", scan_dir.display());
         
         let scan_session = ScanSession {
             scan_id: scan_id.clone(),
@@ -96,6 +106,8 @@ impl ResultStorage {
             .collect();
         fs::write(&list_path, list.join("\n"))?;
         
+        println!("  💾 Saved {} subdomains to: {}", results.len(), list_path.display());
+        
         Ok(list_path)
     }
     
@@ -108,6 +120,8 @@ impl ResultStorage {
             .collect();
         fs::write(&list_path, list.join("\n"))?;
         
+        println!("  💾 Saved {} URLs to: {}", results.len(), list_path.display());
+        
         Ok(list_path)
     }
     
@@ -119,6 +133,8 @@ impl ResultStorage {
             .map(|r| format!("{} (from: {})", r.endpoint, r.source_url))
             .collect();
         fs::write(&list_path, list.join("\n"))?;
+        
+        println!("  💾 Saved {} JS endpoints to: {}", results.len(), list_path.display());
         
         Ok(list_path)
     }
@@ -143,6 +159,8 @@ impl ResultStorage {
         
         fs::write(&summary_path, summary)?;
         
+        println!("  💾 Saved {} secrets to: {}", results.len(), summary_path.display());
+        
         Ok(summary_path)
     }
     
@@ -153,6 +171,7 @@ impl ResultStorage {
             .map(|r| format!("{:6} {}", r.record_type, r.value))
             .collect();
         fs::write(&path, list.join("\n"))?;
+        println!("  💾 Saved {} DNS records to: {}", results.len(), path.display());
         Ok(path)
     }
     
@@ -167,6 +186,7 @@ impl ResultStorage {
             })
             .collect();
         fs::write(&path, list.join("\n"))?;
+        println!("  💾 Saved {} technologies to: {}", results.len(), path.display());
         Ok(path)
     }
     
@@ -209,6 +229,7 @@ impl ResultStorage {
         }
         
         fs::write(&path, content)?;
+        println!("  💾 Saved network intelligence to: {}", path.display());
         Ok(path)
     }
     

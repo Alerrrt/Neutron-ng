@@ -1,5 +1,5 @@
 use neutron_core::ResultStorage;
-use neutron_integrations::tools::{Subfinder, Naabu, Httpx, Nuclei};
+use neutron_integrations::tools::{Subfinder, Naabu, Httpx, Nuclei, PdPipeline};
 use crate::cli::display;
 use anyhow::Result;
 
@@ -7,6 +7,7 @@ pub struct ScanEngine {
     target: String,
     output_dir: String,
     use_pd_tools: bool,
+    use_pd_pipeline: bool,  // New: use full integrated pipeline
 }
 
 impl ScanEngine {
@@ -15,7 +16,14 @@ impl ScanEngine {
             target,
             output_dir,
             use_pd_tools,
+            use_pd_pipeline: false,  // Default to false, can be configured
         }
+    }
+    
+    /// Enable the full PD tools pipeline for comprehensive recon
+    pub fn with_pd_pipeline(mut self, enabled: bool) -> Self {
+        self.use_pd_pipeline = enabled;
+        self
     }
 
     pub async fn run(&self) -> Result<()> {
@@ -23,6 +31,35 @@ impl ScanEngine {
         
         let storage = ResultStorage::new(&self.target, Some(&self.output_dir))?;
         display::status("Scan ID", storage.scan_id());
+        
+        // If PD pipeline is enabled, run the comprehensive pipeline
+        if self.use_pd_pipeline {
+            display::info("🚀 Running comprehensive ProjectDiscovery pipeline...");
+            let pipeline = PdPipeline::new(
+                self.target.clone(),
+                storage.scan_dir().clone()
+            );
+            
+            match pipeline.run_full_pipeline().await {
+                Ok(results) => {
+                    display::success("Pipeline completed successfully!");
+                    println!("\n═══════════════════════════════════════════");
+                    println!("  📊 PIPELINE RESULTS SUMMARY");
+                    println!("═══════════════════════════════════════════");
+                    println!("  Subdomains:       {}", results.subdomains_found);
+                    println!("  Live Hosts:       {}", results.live_hosts_found);
+                    println!("  Live URLs:        {}", results.live_urls_found);
+                    println!("  Endpoints:        {}", results.endpoints_found);
+                    println!("═══════════════════════════════════════════");
+                    println!("  💡 Use 'ai scan' command for Nuclei vulnerability scanning");
+                    println!("═══════════════════════════════════════════\n");
+                }
+                Err(e) => display::error(&format!("Pipeline failed: {}", e)),
+            }
+            
+            // Early return - pipeline is comprehensive
+            return Ok(());
+        }
         
         // ---------------------------------------------------------
         // PHASE 1: SUBDOMAINS
