@@ -7,6 +7,9 @@ pub mod bufferover;
 pub mod rapiddns;
 pub mod anubis;
 pub mod recondev;
+pub mod subdomaincenter;
+pub mod phonebook;
+pub mod thc;
 
 use anyhow::Result;
 use neutron_core::HttpClient;
@@ -39,11 +42,15 @@ pub async fn discover_passive(domain: &str) -> Result<Vec<SubdomainResult>> {
         tokio::spawn(rapiddns::fetch_rapiddns(domain_clone.clone(), http_client.clone())),
         tokio::spawn(anubis::fetch_anubis(domain_clone.clone(), http_client.clone())),
         tokio::spawn(recondev::fetch_recondev(domain_clone.clone(), http_client.clone())),
+        tokio::spawn(subdomaincenter::fetch_subdomaincenter(domain_clone.clone(), http_client.clone())),
+        tokio::spawn(phonebook::fetch_phonebook(domain_clone.clone(), http_client.clone())),
+        tokio::spawn(thc::fetch_thc(domain_clone.clone(), http_client.clone())),
     ];
     
     let source_names = vec![
         "cert.sh", "crt.sh", "VirusTotal", "SecurityTrails", 
-        "Chaos", "BufferOver", "RapidDNS", "Anubis", "recon.dev"
+        "Chaos", "BufferOver", "RapidDNS", "Anubis", "recon.dev",
+        "subdomain.center", "phonebook.cz", "ip.thc.org"
     ];
     
     // Collect results from all sources
