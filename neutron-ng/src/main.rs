@@ -358,9 +358,6 @@ async fn main() -> anyhow::Result<()> {
         Commands::Ip { target } => {
             handle_ip_intel(target).await?;
         }
-                }
-            }
-        }
         Commands::Cheat { topic, search } => {
             display::section_header("SECURITY KNOWLEDGE BASE");
             
