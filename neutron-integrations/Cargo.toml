@@ -1,0 +1,16 @@
+[package]
+name = "neutron-integrations"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+
+[dependencies]
+tokio.workspace = true
+anyhow.workspace = true
+tracing.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+which = "6.0.0"
+tempfile = "3.10"
+regex.workspace = true
