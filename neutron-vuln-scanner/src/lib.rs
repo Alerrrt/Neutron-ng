@@ -39,10 +39,6 @@ pub fn save_results(scan_dir: &Path, results: &ScanResults) -> Result<()> {
     let vuln_dir = scan_dir.join("05_vuln_scan");
     fs::create_dir_all(&vuln_dir)?;
     
-    // Save all crawled URLs
-    let all_urls_file = vuln_dir.join("all_crawled_urls.txt");
-    // Note: We'd need to track this separately in the crawler
-    
     // Save vulnerabilities by type
     let xss_vulns: Vec<_> = results.vulnerabilities.iter()
         .filter(|v| v.vuln_type == VulnType::Xss)

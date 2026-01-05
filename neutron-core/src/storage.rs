@@ -18,7 +18,6 @@ pub struct ScanSession {
 
 /// Result storage manager
 pub struct ResultStorage {
-    base_dir: PathBuf, // This will now be the domain_dir
     scan_session: ScanSession,
 }
 
@@ -60,7 +59,6 @@ impl ResultStorage {
         };
         
         Ok(Self {
-            base_dir,
             scan_session,
         })
     }
