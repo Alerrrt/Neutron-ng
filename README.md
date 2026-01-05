@@ -65,28 +65,51 @@ neutron-ng
 
 ### Command Line
 
-**1. Domain Reconnaissance (Default)**
+**1. Dependency Setup (First Run)**
+Install all required external tools (Subfinder, Naabu, HTTPX, Nuclei, Katana):
+```bash
+neutron-ng setup
+```
+
+**2. Domain Reconnaissance**
+Perform a full ProjectDiscovery-enhanced scan (Subdomains, Ports, URLs, JS, Vulns):
 ```bash
 neutron-ng scan -t example.com
 ```
 
-**2. Username Reconnaissance (OSINT)**
+**3. Username OSINT**
 Search for a username across 200+ platforms:
 ```bash
 neutron-ng user -t alerrrt
 ```
 
-**3. IP Intelligence**
+**4. IP Intelligence**
 Analyze IP address for geolocation, ASN, and network info:
 ```bash
 neutron-ng ip -t 8.8.8.8
 ```
 
-**4. Specific Modules**
+**5. Security Cheat Sheets**
+Access built-in hacking references:
 ```bash
-neutron-ng subdomains -t example.com  # Subdomains only
-neutron-ng urls -t example.com        # URLs only
+neutron-ng cheat list                   # List all topics
+neutron-ng cheat reverse_shells         # View Reverse Shells cheat sheet
+neutron-ng cheat --search "nmap"        # Search logic
 ```
+
+## Architecture & Integration
+
+Neutron-ng 2.0 uses a hybrid engine that combines native Rust modules with industry-standard Go tools:
+
+| Phase | Native Module | Integrated Tool | Function |
+|-------|---------------|-----------------|----------|
+| **Subdomains** | `neutron-subdomain` | **Subfinder** | Passive enumeration |
+| **Ports** | `neutron-network` | **Naabu** | Fast port scanning |
+| **Discovery** | `neutron-url` | **HTTPX** | Liveness probing & tech detect |
+| **Crawling** | `neutron-crawler` | **Katana** | Advanced spidering |
+| **Analysis** | `neutron-js` | **Nuclei** | Vulnerability scanning |
+
+*All tools are managed automatically via `neutron-ng setup`.*
 
 ## Output
 
