@@ -1,4 +1,7 @@
 use colored::*;
+use clap::{Parser, Subcommand};
+use tracing::{info, Level};
+use tracing_subscriber::FmtSubscriber;
 
 mod cli;
 mod engine;
@@ -123,17 +126,14 @@ enum Commands {
         topic: Option<String>,
 
         /// Search for a term across all cheat sheets
-        /// Search for a term across all cheat sheets
         #[arg(short, long)]
         search: Option<String>,
     },
 
     /// Install/Update external dependencies
-    #[command(help_heading = "Configuration")]
     Setup,
 
     /// AI-Driven Vulnerability Scanning
-    #[command(help_heading = "Advanced")]
     Ai {
         /// Target to scan
         #[arg(short, long)]
@@ -428,12 +428,96 @@ async fn main() -> anyhow::Result<()> {
             if let Some(p) = prompt {
                 scanner.run_ai_scan(&target, &p).await?;
             } else {
-                if let Err(e) = scanner.interactive_scan(&target) {
+                if let Err(e) = scanner.interactive_scan(&target).await {
                      display::error(&format!("AI scan failed: {}", e));
                 }
             }
         }
     }
 
+    Ok(())
+}
+
+// Helper functions to reuse logic between CLI and TUI
+
+async fn handle_user_search(target: String) -> anyhow::Result<()> {
+    info!("Searching for username: {}", target);
+    display::section_header(&format!("USERNAME OSINT: {}", target));
+    
+    let engine = neutron_user::UserSearchEngine::new()?;
+    match engine.search_username(&target).await {
+        Ok(results) => {
+            display::success(&format!("Found {} profiles", results.len()));
+            println!();
+            display::table_header("Platform", "URL", "Category");
+            for result in &results {
+                display::table_row(
+                    &result.platform, 
+                    &result.url, 
+                    result.category.as_deref().unwrap_or("Unknown")
+                );
+            }
+            display::table_footer();
+            
+            // Simple save to file (MVP)
+            let filename = format!("{}_profiles.txt", target);
+            let mut content = String::new();
+            for result in results {
+                content.push_str(&format!("[{}] {} - {}\n", result.platform, result.url, result.category.as_deref().unwrap_or("Unknown")));
+            }
+            std::fs::write(&filename, content)?;
+            display::info(&format!("Results saved to {}", filename));
+        }
+        Err(e) => {
+            display::error(&format!("Search failed: {}", e));
+        }
+    }
+    Ok(())
+}
+
+async fn handle_ip_intel(target: String) -> anyhow::Result<()> {
+    info!("Analyzing IP: {}", target);
+    display::section_header(&format!("IP INTELLIGENCE: {}", target));
+    
+    match neutron_ip::analyze_ip(&target).await {
+        Ok(intel) => {
+            // Display Geolocation
+            if let Some(geo) = &intel.geolocation {
+                display::module_header("Geolocation");
+                display::info(&format!("Country: {}", geo.country));
+                display::info(&format!("City:    {}", geo.city));
+                display::info(&format!("ISP:     {}", geo.isp));
+                display::info(&format!("Coords:  {}, {}", geo.lat, geo.lon));
+            }
+
+            // Display Network Intel
+            if !intel.network_intel.asn_numbers.is_empty() {
+                    println!();
+                    display::module_header("Network Info");
+                    for asn in &intel.network_intel.asn_numbers {
+                        if !asn.is_empty() {
+                            display::info(&format!("ASN: {}", asn));
+                        }
+                    }
+            }
+            if !intel.network_intel.reverse_dns.is_empty() {
+                    for ptr in &intel.network_intel.reverse_dns {
+                        if !ptr.is_empty() {
+                            display::info(&format!("Reverse DNS: {}", ptr));
+                        }
+                    }
+            }
+
+                // Save to file
+            let filename = format!("{}_ip_intel.json", target);
+            let json = serde_json::to_string_pretty(&intel)?;
+            std::fs::write(&filename, json)?;
+            println!();
+            display::info(&format!("Full results saved to {}", filename));
+        }
+        Err(e) => {
+                display::error(&format!("IP analysis failed: {}", e));
+        }
+    }
     Ok(())
 }

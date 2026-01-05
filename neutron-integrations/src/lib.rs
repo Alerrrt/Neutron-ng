@@ -1,7 +1,7 @@
-use anyhow::{Result, Context, anyhow};
+use anyhow::{Result, Context};
 use std::process::Stdio;
 use tokio::process::Command;
-use tracing::{info, warn, debug};
+use tracing::{warn, debug};
 use which::which;
 
 pub mod tools;

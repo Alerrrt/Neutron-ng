@@ -1,6 +1,5 @@
 use rust_embed::RustEmbed;
 use anyhow::{Result, anyhow};
-use colored::*;
 
 #[derive(RustEmbed)]
 #[folder = "src/data/"]

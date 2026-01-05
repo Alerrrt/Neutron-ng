@@ -141,7 +141,7 @@ impl ScanEngine {
             
         if should_scan {
             if let Ok(scanner) = neutron_ai::AiScanner::new() {
-                 if let Err(e) = scanner.interactive_scan(&self.target) {
+                 if let Err(e) = scanner.interactive_scan(&self.target).await {
                      display::error(&format!("AI scan failed: {}", e));
                  }
             } else {

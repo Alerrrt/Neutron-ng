@@ -30,7 +30,7 @@ impl AiScanner {
         
         // Find the matching prompt description
         let selected_prompt = prompts::PROMPTS.iter()
-            .find(|(title, desc)| selection.contains(title))
+            .find(|(title, _desc)| selection.contains(title))
             .map(|(_, desc)| *desc)
             .unwrap_or("Find critical vulnerabilities");
 

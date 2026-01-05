@@ -1,6 +1,6 @@
 use anyhow::Result;
 use neutron_types::Technology;
-use tracing::{info, warn};
+use tracing::info;
 use regex::Regex;
 use lazy_static::lazy_static;
 
