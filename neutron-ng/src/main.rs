@@ -109,6 +109,13 @@ enum Commands {
         #[arg(short, long)]
         target: String,
     },
+
+    /// IP address intelligence
+    Ip {
+        /// IP address to analyze
+        #[arg(short, long)]
+        target: String,
+    },
 }
 
 #[derive(Subcommand)]
@@ -419,6 +426,51 @@ async fn main() -> anyhow::Result<()> {
                 }
                 Err(e) => {
                     display::error(&format!("Search failed: {}", e));
+                }
+            }
+        }
+        Commands::Ip { target } => {
+            info!("Analyzing IP: {}", target);
+            display::section_header(&format!("IP INTELLIGENCE: {}", target));
+            
+            match neutron_ip::analyze_ip(&target).await {
+                Ok(intel) => {
+                    // Display Geolocation
+                    if let Some(geo) = &intel.geolocation {
+                        display::module_header("Geolocation");
+                        display::info(&format!("Country: {}", geo.country));
+                        display::info(&format!("City:    {}", geo.city));
+                        display::info(&format!("ISP:     {}", geo.isp));
+                        display::info(&format!("Coords:  {}, {}", geo.lat, geo.lon));
+                    }
+
+                    // Display Network Intel
+                    if !intel.network_intel.asn_numbers.is_empty() {
+                         println!();
+                         display::module_header("Network Info");
+                         for asn in &intel.network_intel.asn_numbers {
+                             if !asn.is_empty() {
+                                 display::info(&format!("ASN: {}", asn));
+                             }
+                         }
+                    }
+                    if !intel.network_intel.reverse_dns.is_empty() {
+                         for ptr in &intel.network_intel.reverse_dns {
+                             if !ptr.is_empty() {
+                                 display::info(&format!("Reverse DNS: {}", ptr));
+                             }
+                         }
+                    }
+
+                     // Save to file
+                    let filename = format!("{}_ip_intel.json", target);
+                    let json = serde_json::to_string_pretty(&intel)?;
+                    std::fs::write(&filename, json)?;
+                    println!();
+                    display::info(&format!("Full results saved to {}", filename));
+                }
+                Err(e) => {
+                     display::error(&format!("IP analysis failed: {}", e));
                 }
             }
         }

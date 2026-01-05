@@ -65,19 +65,27 @@ neutron-ng
 
 ### Command Line
 
-Full scan:
+**1. Domain Reconnaissance (Default)**
 ```bash
 neutron-ng scan -t example.com
 ```
 
-Subdomain enumeration only:
+**2. Username Reconnaissance (OSINT)**
+Search for a username across 200+ platforms:
 ```bash
-neutron-ng subdomains -t example.com
+neutron-ng user -t alerrrt
 ```
 
-Multiple targets:
+**3. IP Intelligence**
+Analyze IP address for geolocation, ASN, and network info:
 ```bash
-neutron-ng scan -t example.com target2.com target3.com
+neutron-ng ip -t 8.8.8.8
+```
+
+**4. Specific Modules**
+```bash
+neutron-ng subdomains -t example.com  # Subdomains only
+neutron-ng urls -t example.com        # URLs only
 ```
 
 ## Output
