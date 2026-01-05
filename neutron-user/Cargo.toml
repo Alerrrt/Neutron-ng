@@ -1,0 +1,19 @@
+[package]
+name = "neutron-user"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+
+[dependencies]
+neutron-types = { path = "../neutron-types" }
+neutron-core = { path = "../neutron-core" }
+
+tokio.workspace = true
+reqwest.workspace = true
+anyhow.workspace = true
+tracing.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+regex.workspace = true
+futures.workspace = true
