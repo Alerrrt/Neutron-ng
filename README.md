@@ -1,54 +1,26 @@
 # Neutron-ng
 
-Professional CLI reconnaissance tool for penetration testers and security professionals.
-
-High-performance reconnaissance toolkit built in Rust, combining 30+ enumeration techniques to efficiently map target attack surfaces.
+Neutron-ng is a professional, multi-modal reconnaissance and Open Source Intelligence (OSINT) suite designed for penetration testers and security researchers. It aggregates multiple data sources and attack vectors into a single, cohesive engine, enabling rapid and comprehensive infrastructure mapping.
 
 ## Features
 
-**Subdomain Enumeration**
-- 9 passive sources: cert.sh, crt.sh, VirusTotal, SecurityTrails, Chaos, BufferOver, RapidDNS, Anubis, recon.dev
-- Active DNS bruteforce with 100+ common patterns
-- Wildcard detection and DNS resolution
-
-**URL Discovery**
-- Historical archives: Wayback Machine, Common Crawl
-- Threat intelligence: AlienVault OTX, URLScan.io
-
-**JavaScript Analysis**
-- API endpoint discovery
-- Secret detection (AWS, Google, GitHub tokens, etc.)
-- GraphQL endpoint extraction
-- JWT token detection
-- Source map discovery
-- Webhook detection (Discord, Slack)
-- Internal IP extraction
-- Hidden admin route discovery
-
-**DNS Intelligence**
-- Complete DNS records (A, AAAA, MX, TXT, NS)
-- SPF/DKIM/DMARC analysis
-
-**Technology Fingerprinting**
-- Web server detection
-- Framework identification
-- CMS detection
-- CDN/WAF identification
-
-**Network Intelligence**
-- ASN discovery
-- BGP range enumeration
-- Reverse DNS lookups
-- IP-to-ASN mapping
+*   **Hybrid Engine**: Orchestrates native Rust modules alongside industry-standard tools (Nuclei, Subfinder, Naabu, HTTPX, Katana).
+*   **Multi-Modal Architecture**:
+    *   **Domain**: Complete attack surface mapping (subdomains, ports, URLs, technologies, vulnerabilities).
+    *   **User**: Cross-platform username presence detection (OSINT).
+    *   **IP**: Geolocation, ASN, and network intelligence.
+    *   **AI**: Intelligent vulnerability scanning using targeted natural language prompts.
+*   **Knowledge Base**: Integrated security cheat sheets for quick reference.
+*   **Performance**: Built on an asynchronous Rust core for high-throughput, non-blocking operations.
+*   **Usability**: Features both a script-friendly CLI and an interactive Terminal UI (TUI).
 
 ## Installation
 
 ### Prerequisites
-- Rust 1.70+
-- `host` command
-- `whois` command
+*   **Rust**: Stable toolchain (install via `rustup`).
+*   **Go**: Required for external tool installation (Subfinder, Nuclei, etc.).
 
-### Build
+### Build from Source
 ```bash
 git clone https://github.com/Alerrrt/Neutron-ng.git
 cd Neutron-ng
@@ -56,104 +28,73 @@ cargo build --release
 sudo cp target/release/neutron-ng /usr/local/bin/
 ```
 
-## Usage
-
-### Interactive Dashboard
-```bash
-neutron-ng
-```
-
-### Command Line
-
-**1. Dependency Setup (First Run)**
-Install all required external tools (Subfinder, Naabu, HTTPX, Nuclei, Katana):
+### Dependency Setup
+Neutron-ng automatically manages its external dependencies. Run the setup command to install or update the required ProjectDiscovery tools:
 ```bash
 neutron-ng setup
 ```
 
-**2. Domain Reconnaissance**
-Perform a full ProjectDiscovery-enhanced scan (Subdomains, Ports, URLs, JS, Vulns):
+## Usage
+
+Neutron-ng supports both interactive and direct command-line usage.
+
+### Interactive Mode
+Run without arguments to launch the TUI menu:
+```bash
+neutron-ng
+```
+
+### Command Line Interface
+
+**1. Domain Reconnaissance (Scan)**
+Perform a full reconnaissance scan on a target domain. This includes subdomain enumeration, port scanning, URL discovery, and vulnerability analysis.
 ```bash
 neutron-ng scan -t example.com
 ```
 
-**3. Username OSINT**
-Search for a username across 200+ platforms:
+**2. Username OSINT**
+Search for a username across 200+ social media and developer platforms.
 ```bash
-neutron-ng user -t alerrrt
+neutron-ng user -t username
 ```
 
-**4. IP Intelligence**
-Analyze IP address for geolocation, ASN, and network info:
+**3. IP Intelligence**
+Analyze an IP address for geolocation, ASN, and network information.
 ```bash
 neutron-ng ip -t 8.8.8.8
 ```
 
-**5. Security Cheat Sheets**
-Access built-in hacking references:
+**4. AI-Driven Vulnerability Scan**
+Use the AI engine to generate and run targeted vulnerability scans.
 ```bash
-neutron-ng cheat list                   # List all topics
-neutron-ng cheat reverse_shells         # View Reverse Shells cheat sheet
-neutron-ng cheat --search "nmap"        # Search logic
+neutron-ng ai -t example.com --prompt "Find SQL injection vulnerabilities"
 ```
 
-## Architecture & Integration
-
-Neutron-ng 2.0 uses a hybrid engine that combines native Rust modules with industry-standard Go tools:
-
-| Phase | Native Module | Integrated Tool | Function |
-|-------|---------------|-----------------|----------|
-| **Subdomains** | `neutron-subdomain` | **Subfinder** | Passive enumeration |
-| **Ports** | `neutron-network` | **Naabu** | Fast port scanning |
-| **Discovery** | `neutron-url` | **HTTPX** | Liveness probing & tech detect |
-| **Crawling** | `neutron-crawler` | **Katana** | Advanced spidering |
-| **Analysis** | `neutron-js` | **Nuclei** | Vulnerability scanning |
-
-*All tools are managed automatically via `neutron-ng setup`.*
-
-## Output
-
-Results are saved in a folder named after your target:
-
-```
-./example.com/
-├── SUMMARY.txt
-├── subdomains.txt
-├── urls.txt
-├── dns_records.txt
-├── technologies.txt
-├── network_intel.txt
-├── js_endpoints.txt
-├── secrets.txt
-└── scan_metadata.json
-```
-
-All output is in plain text format for easy integration with other tools.
-
-## API Keys (Optional)
-
-Set environment variables for enhanced functionality:
-
+**5. Security Knowledge Base**
+Access built-in cheat sheets and references.
 ```bash
-export NEUTRON_VIRUSTOTAL_API_KEY="your_key"
-export NEUTRON_SECURITYTRAILS_API_KEY="your_key"
-export NEUTRON_CHAOS_API_KEY="your_key"
+neutron-ng cheat list                   # List available topics
+neutron-ng cheat reverse_shells         # View specific cheat sheet
+neutron-ng cheat --search "nmap"        # Search across all topics
 ```
 
-Tool works without API keys using free sources.
+## Architecture
 
-## Integration
+Neutron-ng operates as a unified orchestrator:
 
-Pipe output to other tools:
-```bash
-neutron-ng subdomains -t example.com | nuclei -t cves/
-neutron-ng scan -t target.com && cat target.com/urls.txt | httpx
-```
+| Component | Responsibility | Integrated Tools |
+|-----------|----------------|------------------|
+| **Core Engine** | Workflow management, concurrency, results storage | - |
+| **neutron-subdomain** | Passive & Active subdomain enumeration | Subfinder |
+| **neutron-network** | Port scanning, DNS resolution, IP intel | Naabu |
+| **neutron-url** | URL discovery, probing, tech detection | HTTPX |
+| **neutron-crawler** | Deep web crawling, JavaScript analysis | Katana |
+| **neutron-js** | Secret scanning, endpoint extraction | - |
+| **neutron-ai** | Intelligent vulnerability scanning | Nuclei |
+| **neutron-user** | Username OSINT | - |
 
-## License
+## Configuration
+API keys and settings are managed via the configuration system. You will be prompted to enter keys (VirusTotal, SecurityTrails, Chaos) during your first scan if they are missing.
 
-MIT License
-
-## Disclaimer
-
-For authorized security testing only. Always obtain proper authorization before scanning targets.
+---
+*Created for educational and professional security testing purposes only.*
