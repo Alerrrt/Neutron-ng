@@ -168,6 +168,16 @@ enum ConfigAction {
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
+    // Load .env file if it exists (for API keys and config)
+    if let Err(e) = dotenv::dotenv() {
+        // Silently ignore if .env doesn't exist
+        if e.to_string().contains("No such file") || e.to_string().contains("not found") {
+            // .env is optional
+        } else {
+            eprintln!("Warning: Failed to load .env file: {}", e);
+        }
+    }
+
     let cli = Cli::parse();
 
     // Initialize logging
@@ -181,15 +191,57 @@ async fn main() -> anyhow::Result<()> {
     display::display_banner();
     info!("Neutron-ng v{} starting...", env!("CARGO_PKG_VERSION"));
     
+    // Setup graceful shutdown on Ctrl+C
+    let shutdown = std::sync::Arc::new(std::sync::atomic::AtomicBool::new(false));
+    let shutdown_clone = shutdown.clone();
+    
+    tokio::spawn(async move {
+        if let Ok(()) = tokio::signal::ctrl_c().await {
+            println!("\n\n[!] Received Ctrl+C, shutting down gracefully...");
+            shutdown_clone.store(true, std::sync::atomic::Ordering::SeqCst);
+            // Give processes time to cleanup
+            tokio::time::sleep(tokio::time::Duration::from_secs(2)).await;
+            println!("[+] Neutron-ng stopped.");
+            std::process::exit(0);
+        }
+    });
+    
     // If no command provided, launch interactive dashboard
     if cli.command.is_none() {
         let mut dashboard = Dashboard::new();
         return dashboard.run().await;
     }
 
-    match cli.command.unwrap() {
-        Commands::Scan { target, output, format } => {
+    // Commands are guaranteed to exist here due to check above
+    let command = match cli.command {
+        Some(cmd) => cmd,
+        None => unreachable!("Command should exist after None check"),
+    };
+
+    match command {
+        Commands::Scan { target, output, format: _ } => {
             info!("Running comprehensive scan on targets: {:?}", target);
+            
+            // Validate and create output directory
+            if let Err(e) = std::fs::create_dir_all(&output) {
+                display::error(&format!("Failed to create output directory '{}': {}", output, e));
+                display::error("Check directory permissions and try again.");
+                return Ok(());
+            }
+            
+            // Check write permissions by attempting to create a temp file
+            let test_file = format!("{}/.neutron_test", output);
+            match std::fs::File::create(&test_file) {
+                Ok(_) => {
+                    let _ = std::fs::remove_file(&test_file); // Clean up
+                    display::success(&format!("Output directory validated: {}", output));
+                }
+                Err(e) => {
+                    display::error(&format!("No write permission for output directory '{}': {}", output, e));
+                    display::error("Please check directory permissions or choose a different location.");
+                    return Ok(());
+                }
+            }
             
             // Check and prompt for API keys
             display::section_header("API KEY CONFIGURATION");

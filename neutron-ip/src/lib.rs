@@ -88,20 +88,62 @@ async fn get_asn_info(ip: &str) -> Result<String> {
 }
 
 async fn get_geolocation(ip: &str) -> Result<Geolocation> {
+    use std::time::Duration;
+    use tokio::time::sleep;
+    
     let client = reqwest::Client::new();
     let url = format!("http://ip-api.com/json/{}", ip);
-    let resp = client.get(&url).send().await?;
-    let json: serde_json::Value = resp.json().await?;
     
-    if json["status"].as_str() == Some("success") {
-        Ok(Geolocation {
-            country: json["country"].as_str().unwrap_or_default().to_string(),
-            city: json["city"].as_str().unwrap_or_default().to_string(),
-            lat: json["lat"].as_f64().unwrap_or_default(),
-            lon: json["lon"].as_f64().unwrap_or_default(),
-            isp: json["isp"].as_str().unwrap_or_default().to_string(),
-        })
-    } else {
-        Err(anyhow::anyhow!("Geolocation failed"))
+    // ip-api.com has a 45 req/min limit
+    // Implement retry logic with exponential backoff
+    let max_retries = 3;
+    let mut retry_count = 0;
+    
+    loop {
+        let resp = client.get(&url).send().await?;
+        
+        // Check for rate limiting (429 Too Many Requests)
+        if resp.status() == reqwest::StatusCode::TOO_MANY_REQUESTS {
+            if retry_count >= max_retries {
+                return Err(anyhow::anyhow!(
+                    "Rate limited by ip-api.com after {} retries. Please wait 1 minute.", 
+                    max_retries
+                ));
+            }
+            
+            // Exponential backoff: 2^retry_count seconds
+            let backoff = Duration::from_secs(2u64.pow(retry_count));
+            tracing::warn!(
+                "Rate limited by ip-api.com. Retrying in {} seconds... (attempt {}/{})",
+                backoff.as_secs(),
+                retry_count + 1,
+                max_retries
+            );
+            sleep(backoff).await;
+            retry_count += 1;
+            continue;
+        }
+        
+        // Parse response
+        let json: serde_json::Value = resp.json().await?;
+        
+        // Validate response structure before accessing fields
+        if json.get("status").is_none() {
+            return Err(anyhow::anyhow!("Invalid API response format from ip-api.com"));
+        }
+        
+        if json["status"].as_str() == Some("success") {
+            return Ok(Geolocation {
+                country: json["country"].as_str().unwrap_or_default().to_string(),
+                city: json["city"].as_str().unwrap_or_default().to_string(),
+                lat: json["lat"].as_f64().unwrap_or_default(),
+                lon: json["lon"].as_f64().unwrap_or_default(),
+                isp: json["isp"].as_str().unwrap_or_default().to_string(),
+            });
+        } else {
+            // API returned an error (e.g., "fail" status)
+            let message = json["message"].as_str().unwrap_or("Unknown error");
+            return Err(anyhow::anyhow!("Geolocation failed: {}", message));
+        }
     }
 }

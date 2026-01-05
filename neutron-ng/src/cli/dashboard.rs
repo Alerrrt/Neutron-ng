@@ -376,17 +376,23 @@ impl Dashboard {
     
     fn get_input(&self, prompt: &str) -> String {
         print!("  [?] {}: ", prompt);
-        io::stdout().flush().unwrap();
+        if let Err(e) = io::stdout().flush() {
+            display::error(&format!("I/O error: {}", e));
+            return String::new();
+        }
         
         let mut input = String::new();
-        io::stdin().read_line(&mut input).unwrap();
+        if let Err(e) = io::stdin().read_line(&mut input) {
+            display::error(&format!("Failed to read input: {}", e));
+            return String::new();
+        }
         input.trim().to_string()
     }
     
     fn pause(&self) {
         print!("\n  Press Enter to continue...");
-        io::stdout().flush().unwrap();
+        let _ = io::stdout().flush(); // Ignore flush errors on pause
         let mut input = String::new();
-        io::stdin().read_line(&mut input).unwrap();
+        let _ = io::stdin().read_line(&mut input); // Ignore read errors on pause
     }
 }

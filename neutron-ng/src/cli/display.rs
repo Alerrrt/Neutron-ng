@@ -54,10 +54,16 @@ pub fn info(message: &str) {
 /// Prompt user for input
 pub fn prompt(message: &str) -> String {
     print!("  [?] {}: ", message);
-    io::stdout().flush().unwrap();
+    if let Err(e) = io::stdout().flush() {
+        error(&format!("Failed to flush stdout: {}", e));
+        return String::new();
+    }
     
     let mut input = String::new();
-    io::stdin().read_line(&mut input).unwrap();
+    if let Err(e) = io::stdin().read_line(&mut input) {
+        error(&format!("Failed to read input: {}", e));
+        return String::new();
+    }
     input.trim().to_string()
 }
 
