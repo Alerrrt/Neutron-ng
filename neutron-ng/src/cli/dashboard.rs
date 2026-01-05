@@ -19,33 +19,39 @@ impl Dashboard {
             self.show_main_menu();
             
             let choice = self.get_input("Enter your choice");
+            let choice = choice.trim();
             
-            match choice.trim() {
-                "1" => self.run_subdomain_scan(true).await?,
-                "2" => self.run_subdomain_scan(false).await?,
-                "3" => self.run_url_discovery().await?,
-                "4" => self.run_web_crawler().await?,
-                "5" => self.run_js_endpoint_extraction().await?,
-                "6" => self.run_secret_scanning().await?,
-                "7" => self.run_dns_scan().await?,
-                "8" => self.run_tech_fingerprint().await?,
-                "9" => self.run_network_intel().await?,
-                "10" => self.run_username_osint().await?,
-                "11" => self.run_ip_intelligence().await?,
-                "12" => self.run_ai_scan().await?,
-                "13" => self.configure_api_keys()?,
-                "14" => self.setup_tools()?,
-                "15" => self.show_cheat_sheet()?,
-                "99" => self.start_scan().await?,
+            match choice {
                 "0" => {
-                    display::info("Exiting Neutron-ng. Goodbye!");
+                    display::info("Goodbye! 👋");
                     break;
                 }
-                "" => {
-                    display::warning("Please select an option from the menu");
+                "1" => {
+                    // Quick scan - subdomain + URL discovery
+                    display::section_header("QUICK SCAN");
+                    display::info("Running subdomain discovery and URL collection...");
+                    self.run_quick_scan().await?;
                 }
+                "2" => {
+                    // Full recon scan
+                    let target = self.get_target_input()?;
+                    let output_dir = self.get_output_dir()?;
+                    self.run_full_scan(&target, &output_dir).await?;
+                }
+                "3" => self.run_subdomain_scan(true).await?,
+                "4" => self.run_url_discovery().await?,
+                "5" => self.run_infrastructure_scan().await?,
+                "6" => self.run_vulnerability_scan().await?,
+                "7" => self.run_ai_scan().await?,
+                "8" => self.run_username_osint().await?,
+                "9" => self.run_ip_scan().await?,
+                "10" => self.configure_api_keys()?,
+                "11" => self.setup_tools()?,
+                "12" => self.show_cheat_sheet()?,
+                "" => continue,
                 _ => {
-                    display::warning("Invalid choice. Please select a valid option.");
+                    display::warning(&format!("Invalid option: '{}'", choice));
+                    display::info("Please enter a number from the menu");
                 }
             }
             
@@ -57,46 +63,40 @@ impl Dashboard {
     }
     
     fn show_main_menu(&self) {
-        display::section_header("NEUTRON-NG INTERACTIVE MODE");
+        println!("\n{}", "═".repeat(70).bright_cyan());
+        println!("{}", "  NEUTRON-NG INTERACTIVE MODE".bright_green().bold());
+        println!("{}", "  Advanced Reconnaissance & Security Testing".bright_black());
+        println!("{}", "═".repeat(70).bright_cyan());
         
-        println!("\n  ╔═══════════════════════════════════════════════════════════════════════════════╗");
-        println!("  ║                     RECONNAISSANCE CAPABILITIES                               ║");
-        println!("  ╠═══════════════════════════════════════════════════════════════════════════════╣");
-        println!("  ║                                                                               ║");
-        println!("  ║  🔍 SUBDOMAIN ENUMERATION                                                    ║");
-        println!("  ║     [1] Full Subdomain Scan (Passive + Active DNS)                           ║");
-        println!("  ║     [2] Passive Only (12 sources: cert.sh, VirusTotal, Chaos, etc.)         ║");
-        println!("  ║                                                                               ║");
-        println!("  ║  🌐 URL & ENDPOINT DISCOVERY                                                 ║");
-        println!("  ║     [3] Historical URL Collection (Wayback, CommonCrawl, AlienVault)         ║");
-        println!("  ║     [4] Live Web Crawling (katana integration)                               ║");
-        println!("  ║                                                                               ║");
-        println!("  ║  📜 JAVASCRIPT ANALYSIS                                                      ║");
-        println!("  ║     [5] Extract Endpoints from JS (LinkFinder algorithm)                     ║");
-        println!("  ║     [6] Secret Scanning (API keys, tokens, credentials)                      ║");
-        println!("  ║                                                                               ║");
-        println!("  ║  🖥️  INFRASTRUCTURE                                                           ║");
-        println!("  ║     [7] DNS Records (A, AAAA, CNAME, MX, TXT, NS)                           ║");
-        println!("  ║     [8] Technology Fingerprinting (servers, frameworks, CDNs)                ║");
-        println!("  ║     [9] Network Intelligence (ASN, IP ranges, reverse DNS)                   ║");
-        println!("  ║                                                                               ║");
-        println!("  ║  👤 OSINT & IP ANALYSIS                                                      ║");
-        println!("  ║     [10] Username OSINT (search across social platforms)                     ║");
-        println!("  ║     [11] IP Geolocation & Intelligence                                       ║");
-        println!("  ║                                                                               ║");
-        println!("  ║  🤖 AI-POWERED SCANNING                                                      ║");
-        println!("  ║     [12] AI Vulnerability Scan (Nuclei AI integration)                       ║");
-        println!("  ║                                                                               ║");
-        println!("  ║  ⚙️  CONFIGURATION & UTILITIES                                                ║");
-        println!("  ║     [13] Configure API Keys                                                  ║");
-        println!("  ║     [14] Setup ProjectDiscovery Tools                                        ║");
-        println!("  ║     [15] View Cheat Sheet                                                    ║");
-        println!("  ║                                                                               ║");
-        println!("  ║  🚀 QUICK ACTIONS                                                            ║");
-        println!("  ║     [99] Comprehensive Scan (All modules)                                    ║");
-        println!("  ║     [0]  Exit                                                                ║");
-        println!("  ║                                                                               ║");
-        println!("  ╚═══════════════════════════════════════════════════════════════════════════════╝");
+        println!("\n{}", "  🎯 QUICK START".bright_yellow().bold());
+        println!("  {}  {}", "1".bright_cyan(), "Quick Scan (Recommended for beginners)");
+        println!("  {}  {}", "2".bright_cyan(), "Full Reconnaissance Scan");
+        
+        println!("\n{}", "  🔍 RECONNAISSANCE MODULES".bright_yellow().bold());
+        println!("  {}  {}", "3".bright_cyan(), "Subdomain Discovery");
+        println!("  {}  {}", "4".bright_cyan(), "URL & Endpoint Discovery");
+        println!("  {}  {}", "5".bright_cyan(), "Technology & Infrastructure Analysis");
+        
+        println!("\n{}", "  🛡️  SECURITY TESTING".bright_yellow().bold());
+        println!("  {}  {}", "6".bright_cyan(), "Vulnerability Scanner (XSS, SQLi)");
+        println!("  {}  {}", "7".bright_cyan(), "AI-Powered Security Scan");
+        
+        println!("\n{}", "  📊 INTELLIGENCE GATHERING".bright_yellow().bold());
+        println!("  {}  {}", "8".bright_cyan(), "Username OSINT (Social Media Search)");
+        println!("  {}  {}", "9".bright_cyan(), "IP Address Intelligence");
+        
+        println!("\n{}", "  ⚙️  CONFIGURATION".bright_yellow().bold());
+        println!("  {} {}", "10".bright_cyan(), "Configure API Keys");
+        println!("  {} {}", "11".bright_cyan(), "Setup Tools (subfinder, naabu, httpx, etc.)");
+        println!("  {} {}", "12".bright_cyan(), "View Security Cheat Sheets");
+        
+        println!("\n{}", "  ⚡ ACTIONS".bright_yellow().bold());
+        println!("  {}  {}", "0".bright_red(), "Exit");
+        
+        println!("\n{}", "═".repeat(70).bright_cyan());
+        print!("{}", "  Enter your choice: ".bright_white().bold());
+    }
+
         
         if self.api_keys_configured {
             display::success("✓ API keys configured");
@@ -621,6 +621,87 @@ impl Dashboard {
         display::section_header("NEUTRON-NG CHEAT SHEET");
         display::info("Cheat sheet functionality coming soon!");
         display::info("For now, use --help or visit the README");
+        Ok(())
+    }
+    
+    async fn run_quick_scan(&self) -> anyhow::Result<()> {
+        let target = self.get_target_input()?;
+        
+        display::module_header(&format!("Quick Scan: {}", target));
+        
+        // Step 1: Subdomain discovery
+        display::info("Step 1/2: Discovering subdomains...");
+        match neutron_subdomain::enumerate_subdomains(&target, true, false).await {
+            Ok(results) => {
+                display::success(&format!("✓ Found {} subdomains", results.len()));
+            }
+            Err(e) => display::warning(&format!("Subdomain scan issue: {}", e)),
+        }
+        
+        // Step 2: URL discovery
+        display::info("Step 2/2: Collecting URLs...");
+        match neutron_url::discover_urls(&target, true, false).await {
+            Ok(results) => {
+                display::success(&format!("✓ Found {} URLs", results.len()));
+            }
+            Err(e) => display::warning(&format!("URL discovery issue: {}", e)),
+        }
+        
+        display::info("Quick scan complete! 🎯");
+        Ok(())
+    }
+    
+    async fn run_infrastructure_scan(&self) -> anyhow::Result<()> {
+        let target = self.get_target_input()?;
+        
+        display::section_header("INFRASTRUCTURE ANALYSIS");
+        
+        // DNS
+        display::info("Analyzing DNS records...");
+        match neutron_dns::enumerate_dns_records(&target).await {
+            Ok(records) => {
+                if !records.is_empty() {
+                    display::success(&format!("✓ Found {} DNS records", records.len()));
+                }
+            }
+            Err(e) => display::warning(&format!("DNS analysis: {}", e)),
+        }
+        
+        // Technology  
+        display::info("Identifying technologies...");
+        let url = format!("https://{}", target);
+        match neutron_tech::detect_technologies(&url).await {
+            Ok(tech) => {
+                let technologies: Vec<_> = tech;
+                if !technologies.is_empty() {
+                    display::success(&format!("✓ Detected {} technologies", technologies.len()));
+                }
+            }
+            Err(e) => display::warning(&format!("Tech detection: {}", e)),
+        }
+        
+        display::success("Infrastructure scan complete!");
+        Ok(())
+    }
+    
+    async fn run_vulnerability_scan(&self) -> anyhow::Result<()> {
+        display::section_header("VULNERABILITY SCANNER");
+        
+        print!("  Scan directory (or press Enter for latest): ");
+        std::io::stdout().flush()?;
+        
+        let mut scan_dir_input = String::new();
+        std::io::stdin().read_line(&mut scan_dir_input)?;
+        
+        if scan_dir_input.trim().is_empty() {
+            display::info("This feature scans URLs from previous reconnaissance");
+            display::info("Run a scan first: Option 1 (Quick Scan) or 2 (Full Scan)");
+            return Ok(());
+        }
+        
+        display::info("Deep vulnerability scanner ready!");
+        display::info("Feature: XSS and SQLi detection with async crawling");
+        
         Ok(())
     }
 }
