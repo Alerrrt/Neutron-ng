@@ -129,7 +129,20 @@ enum Commands {
     },
 
     /// Install/Update external dependencies
+    #[command(help_heading = "Configuration")]
     Setup,
+
+    /// AI-Driven Vulnerability Scanning
+    #[command(help_heading = "Advanced")]
+    Ai {
+        /// Target to scan
+        #[arg(short, long)]
+        target: String,
+
+        /// Custom AI prompt (optional, defaults to interactive menu)
+        #[arg(short, long)]
+        prompt: Option<String>,
+    },
 }
 
 #[derive(Subcommand)]
@@ -474,6 +487,25 @@ async fn main() -> anyhow::Result<()> {
             match neutron_integrations::installer::Installer::check_and_install_all() {
                 Ok(_) => display::success("All dependencies checked."),
                 Err(e) => display::error(&format!("Setup failed: {}", e)),
+            }
+        }
+        Commands::Ai { target, prompt } => {
+            display::section_header("AI-DRIVEN VULNERABILITY SCANNING");
+            
+            let scanner = match neutron_ai::AiScanner::new() {
+                Ok(s) => s,
+                Err(e) => {
+                    display::error(&format!("{}", e));
+                    return Ok(());
+                }
+            };
+
+            if let Some(p) = prompt {
+                scanner.run_ai_scan(&target, &p).await?;
+            } else {
+                if let Err(e) = scanner.interactive_scan(&target) {
+                     display::error(&format!("AI scan failed: {}", e));
+                }
             }
         }
     }

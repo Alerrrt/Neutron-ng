@@ -18,6 +18,7 @@ neutron-user = { path = "../neutron-user" }
 neutron-ip = { path = "../neutron-ip" }
 neutron-knowledge = { path = "../neutron-knowledge" }
 neutron-integrations = { path = "../neutron-integrations" }
+neutron-ai = { path = "../neutron-ai" }
 
 clap.workspace = true
 tokio.workspace = true

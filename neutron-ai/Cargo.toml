@@ -1,0 +1,16 @@
+[package]
+name = "neutron-ai"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+
+[dependencies]
+tokio.workspace = true
+anyhow.workspace = true
+tracing.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+neutron-integrations = { path = "../neutron-integrations" }
+inquire = "0.6" 
+colored.workspace = true
