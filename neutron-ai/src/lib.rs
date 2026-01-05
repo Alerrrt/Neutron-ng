@@ -18,7 +18,7 @@ impl AiScanner {
     }
 
     /// Interactive mode to select a prompt and run the scan
-    pub fn interactive_scan(&self, target: &str) -> Result<()> {
+    pub async fn interactive_scan(&self, target: &str) -> Result<()> {
         println!("{}", "\n🤖 NEUTRON AI: Intelligent Vulnerability Scanning".cyan().bold());
         println!("{}", "Select a scan objective from the curated library:".dimmed());
 
