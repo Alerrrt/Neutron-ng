@@ -94,11 +94,6 @@ pub fn prompt_api_key(service: &str, env_var: &str) -> Option<String> {
     }
 }
 
-/// Display a progress indicator
-pub fn progress(phase: &str, current: usize, total: usize) {
-    println!("  [*] {}: {}/{}", phase, current, total);
-}
-
 /// Display results summary
 pub fn results_summary(subdomains: usize, urls: usize, endpoints: usize, secrets: usize) {
     println!("\n╔═══════════════════════════════════════════════════════════════════════════════╗");

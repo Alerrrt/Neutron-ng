@@ -2,10 +2,10 @@ use anyhow::Result;
 use neutron_core::HttpClient;
 use serde::Deserialize;
 
+#[allow(dead_code)]
 #[derive(Debug, Deserialize)]
 struct CommonCrawlIndex {
     id: String,
-    name: String,
 }
 
 #[derive(Debug, Deserialize)]

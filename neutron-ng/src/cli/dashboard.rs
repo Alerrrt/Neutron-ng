@@ -161,8 +161,8 @@ impl Dashboard {
         let mut all_urls = Vec::new();
         let mut all_endpoints = Vec::new();
         let mut all_secrets = Vec::new();
-        let mut all_dns_records = Vec::new();
-        let mut all_technologies = Vec::new();
+        let mut _all_dns_records = Vec::new();
+        let mut _all_technologies = Vec::new();
         
         // 1. DNS Enumeration
         display::module_header("DNS Intelligence");
@@ -171,7 +171,7 @@ impl Dashboard {
                 display::success(&format!("Found {} DNS records", results.len()));
                 storage.save_dns_records(&results)?;
                 storage.record_module("dns");
-                all_dns_records = results;
+                _all_dns_records = results;
             }
             Err(e) => {
                 display::error(&format!("DNS enumeration failed: {}", e));
@@ -214,7 +214,7 @@ impl Dashboard {
                 display::success(&format!("Identified {} technologies", results.len()));
                 storage.save_technologies(&results)?;
                 storage.record_module("technologies");
-                all_technologies = results;
+                _all_technologies = results;
             }
             Err(e) => {
                 display::error(&format!("Technology fingerprinting failed: {}", e));

@@ -1,7 +1,6 @@
 use neutron_core::ResultStorage;
 use neutron_integrations::tools::{Subfinder, Naabu, Httpx, Nuclei};
 use crate::cli::display;
-use tracing::{info, warn, error};
 use anyhow::Result;
 
 pub struct ScanEngine {
@@ -22,7 +21,7 @@ impl ScanEngine {
     pub async fn run(&self) -> Result<()> {
         display::section_header(&format!("SCANNING TARGET: {}", self.target));
         
-        let mut storage = ResultStorage::new(&self.target, Some(&self.output_dir))?;
+        let storage = ResultStorage::new(&self.target, Some(&self.output_dir))?;
         display::status("Scan ID", storage.scan_id());
         
         // ---------------------------------------------------------
