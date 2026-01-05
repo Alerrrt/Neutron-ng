@@ -1,5 +1,6 @@
 use std::io::{self, Write};
 use crate::cli::display;
+use colored::*;
 
 /// Interactive dashboard for Neutron-ng
 pub struct Dashboard {
@@ -479,6 +480,10 @@ impl Dashboard {
             Err(e) => display::error(&format!("DNS scan failed: {}", e)),
         }
         Ok(())
+    }
+    
+    async fn run_tech_scan(&self) -> anyhow::Result<()> {
+        self.run_tech_fingerprint().await
     }
     
     async fn run_tech_fingerprint(&self) -> anyhow::Result<()> {
