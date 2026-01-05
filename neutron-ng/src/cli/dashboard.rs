@@ -369,7 +369,7 @@ impl Dashboard {
         
         display::section_header(&format!("HISTORICAL URL DISCOVERY: {}", target));
         
-        match neutron_url::discover_historical_urls(&target).await {
+        match neutron_url::discover_urls(&target, true, false).await {
             Ok(urls) => {
                 display::success(&format!("Found {} historical URLs", urls.len()));
                 for url in urls.iter().take(30) {
@@ -458,24 +458,17 @@ impl Dashboard {
         
         display::section_header(&format!("DNS RECORDS: {}", target));
         
-        match neutron_dns::resolve_domains(&[target.clone()]).await {
+        match neutron_dns::enumerate_dns_records(&target).await {
             Ok(records) => {
-                for record in records {
-                    println!("\n  Domain: {}", record.domain);
-                    if !record.a_records.is_empty() {
-                        println!("  A: {}", record.a_records.join(", "));
+                if records.is_empty() {
+                    display::info("No DNS records found");
+                } else {
+                    println!("\n  DNS Records for: {}", target);
+                    for record in &records {
+                        println!("  {} → {}", record.record_type, record.value);
                     }
-                    if !record.aaaa_records.is_empty() {
-                        println!("  AAAA: {}", record.aaaa_records.join(", "));
-                    }
-                    if !record.cname_records.is_empty() {
-                        println!("  CNAME: {}", record.cname_records.join(", "));
-                    }
-                    if !record.mx_records.is_empty() {
-                        println!("  MX: {}", record.mx_records.join(", "));
-                    }
+                    display::success(&format!("{} DNS records found", records.len()));
                 }
-                display::success("DNS resolution complete");
             }
             Err(e) => display::error(&format!("DNS scan failed: {}", e)),
         }
@@ -590,14 +583,15 @@ impl Dashboard {
     
     fn setup_tools(&self) -> anyhow::Result<()> {
         display::section_header("PROJECTDISCOVERY TOOL SETUP");
-        neutron_integrations::Installer::check_and_install_all()?;
+        neutron_integrations::installer::Installer::check_and_install_all()?;
         display::success("Tool setup complete!");
         Ok(())
     }
     
     fn show_cheat_sheet(&self) -> anyhow::Result<()> {
         display::section_header("NEUTRON-NG CHEAT SHEET");
-        neutron_knowledge::show_cheatsheet()?;
+        display::info("Cheat sheet functionality coming soon!");
+        display::info("For now, use --help or visit the README");
         Ok(())
     }
 }
