@@ -72,7 +72,7 @@ impl PdPipeline {
         let output_file = phase_dir.join("subfinder_output.txt");
         let subfinder = ToolWrapper::new("subfinder")?;
         
-        let output = subfinder.run(&[
+        let _output = subfinder.run(&[
             "-d", &self.target,
             "-all",              // Use all sources
             "-silent",
@@ -107,7 +107,7 @@ impl PdPipeline {
         let output_file = phase_dir.join("naabu_output.txt");
         let naabu = ToolWrapper::new("naabu")?;
         
-        let output = naabu.run(&[
+        let _output = naabu.run(&[
             "-list", input_file.to_str().unwrap(),
             "-top-ports", "1000",       // Top 1000 ports
             "-c", "50",                  // 50 concurrent hosts
@@ -147,7 +147,7 @@ impl PdPipeline {
         let output_file = phase_dir.join("httpx_output.txt");
         let httpx = ToolWrapper::new("httpx")?;
         
-        let output = httpx.run(&[
+        let _output = httpx.run(&[
             "-list", input_file.to_str().unwrap(),
             "-silent",
             "-follow-redirects",
@@ -182,7 +182,7 @@ impl PdPipeline {
         let output_file = phase_dir.join("katana_output.txt");
         let katana = ToolWrapper::new("katana")?;
         
-        let output = katana.run(&[
+        let _output = katana.run(&[
             "-list", input_file.to_str().unwrap(),
             "-d", "3",                   // Depth 3
             "-jc",                       // JS crawling

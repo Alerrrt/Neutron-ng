@@ -14,7 +14,7 @@ members = [
     "neutron-ip",
     "neutron-knowledge",
     "neutron-integrations",
-    "neutron-ai",
+    "neutron-ai", "neutron-vuln-scanner",
 ]
 
 [workspace.package]
