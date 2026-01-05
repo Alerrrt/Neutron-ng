@@ -5,6 +5,7 @@ use tracing::{info, warn, debug};
 use which::which;
 
 pub mod tools;
+pub mod installer;
 
 /// Generic wrapper for external tools
 pub struct ToolWrapper {

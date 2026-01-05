@@ -123,9 +123,13 @@ enum Commands {
         topic: Option<String>,
 
         /// Search for a term across all cheat sheets
+        /// Search for a term across all cheat sheets
         #[arg(short, long)]
         search: Option<String>,
     },
+
+    /// Install/Update external dependencies
+    Setup,
 }
 
 #[derive(Subcommand)]
@@ -461,6 +465,15 @@ async fn main() -> anyhow::Result<()> {
                         }
                     }
                 }
+            }
+        }
+        Commands::Setup => {
+            display::section_header("DEPENDENCY SETUP");
+            info!("Checking and installing dependencies...");
+            
+            match neutron_integrations::installer::Installer::check_and_install_all() {
+                Ok(_) => display::success("All dependencies checked."),
+                Err(e) => display::error(&format!("Setup failed: {}", e)),
             }
         }
     }
