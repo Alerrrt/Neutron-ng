@@ -1,8 +1,6 @@
-use anyhow::Result;
 use neutron_types::UserResult;
-use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
-use tracing::{info, warn, debug};
+use serde::Deserialize;
+use tracing::{info, debug};
 use neutron_core::HttpClient;
 
 #[derive(Debug, Deserialize, Clone)]

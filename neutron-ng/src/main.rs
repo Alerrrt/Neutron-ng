@@ -102,6 +102,13 @@ enum Commands {
         #[arg(short, long, default_value = "html")]
         format: String,
     },
+
+    /// Search for username across platforms
+    User {
+        /// Username to search
+        #[arg(short, long)]
+        target: String,
+    },
 }
 
 #[derive(Subcommand)]
@@ -381,6 +388,39 @@ async fn main() -> anyhow::Result<()> {
             info!("Generating {} report for scan: {}", format, scan_id);
             display::section_header("REPORT GENERATION");
             display::warning("Report generation not yet implemented");
+        }
+        Commands::User { target } => {
+            info!("Searching for username: {}", target);
+            display::section_header(&format!("USERNAME OSINT: {}", target));
+            
+            let engine = neutron_user::UserSearchEngine::new()?;
+            match engine.search_username(&target).await {
+                Ok(results) => {
+                    display::success(&format!("Found {} profiles", results.len()));
+                    println!();
+                    display::table_header("Platform", "URL", "Category");
+                    for result in &results {
+                        display::table_row(
+                            &result.platform, 
+                            &result.url, 
+                            result.category.as_deref().unwrap_or("Unknown")
+                        );
+                    }
+                    display::table_footer();
+                    
+                    // Simple save to file (MVP)
+                    let filename = format!("{}_profiles.txt", target);
+                    let mut content = String::new();
+                    for result in results {
+                        content.push_str(&format!("[{}] {} - {}\n", result.platform, result.url, result.category.as_deref().unwrap_or("Unknown")));
+                    }
+                    std::fs::write(&filename, content)?;
+                    display::info(&format!("Results saved to {}", filename));
+                }
+                Err(e) => {
+                    display::error(&format!("Search failed: {}", e));
+                }
+            }
         }
     }
 

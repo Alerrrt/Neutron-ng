@@ -196,3 +196,13 @@ pub struct NetworkIntelligence {
     pub reverse_dns: Vec<String>,
     pub related_domains: Vec<String>,
 }
+
+/// User profile result
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UserResult {
+    pub username: String,
+    pub platform: String,
+    pub url: String,
+    pub exists: bool,
+    pub category: Option<String>,
+}
