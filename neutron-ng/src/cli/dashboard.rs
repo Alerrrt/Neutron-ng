@@ -174,9 +174,38 @@ impl Dashboard {
         
         match scan_type.trim() {
             "1" => self.run_full_scan(&target, output_dir).await?,
-            "2" => self.run_subdomain_scan(&target).await?,
-            "3" => self.run_url_scan(&target).await?,
-            "4" => self.run_js_scan(&target).await?,
+            "2" => {
+                // Subdomain scan only
+                let target_str = target.clone();
+                display::module_header("Subdomain Enumeration");
+                match neutron_subdomain::enumerate_subdomains(&target_str, true, true).await {
+                    Ok(results) => {
+                        display::success(&format!("Found {} subdomains", results.len()));
+                    }
+                    Err(e) => display::error(&format!("Scan failed: {}", e)),
+                }
+            }
+            "3" => {
+                // URL discovery only 
+                display::module_header("URL Discovery");
+                match neutron_url::discover_urls(&target, true, false).await {
+                    Ok(results) => {
+                        display::success(&format!("Found {} URLs", results.len()));
+                    }
+                    Err(e) => display::error(&format!("Discovery failed: {}", e)),
+                }
+            }
+            "4" => {
+                // JS analysis only
+                display::module_header("JavaScript Analysis");
+                let urls = vec![format!("https://{}", target)];
+                match neutron_js::analyze_javascript(&urls).await {
+                    Ok((endpoints, secrets)) => {
+                        display::success(&format!("Found {} endpoints, {} secrets", endpoints.len(), secrets.len()));
+                    }
+                    Err(e) => display::error(&format!("Analysis failed: {}", e)),
+                }
+            }
             _ => {
                 display::warning("Invalid scan type, running full scan");
                 self.run_full_scan(&target, output_dir).await?;
