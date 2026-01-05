@@ -122,6 +122,35 @@ impl ScanEngine {
              }
         }
         
+        // ---------------------------------------------------------
+        // PHASE 4: AI-DRIVEN VULNERABILITY SCANNING (Optional)
+        // ---------------------------------------------------------
+        println!();
+        display::module_header("Phase 4: AI Vulnerability Scan");
+        
+        // Check if user wants to proceed with AI scan
+        // In a real automated pipeline, we might have a --yes or --ai-auto flag.
+        // For now, we ask interactively.
+        use inquire::Confirm;
+        
+        let should_scan = Confirm::new(&format!("Run AI-driven vulnerability scan on {}?", self.target))
+            .with_default(false)
+            .with_help_message("This uses Nuclei AI to generate targeted templates based on your objectives.")
+            .prompt()
+            .unwrap_or(false);
+            
+        if should_scan {
+            if let Ok(scanner) = neutron_ai::AiScanner::new() {
+                 if let Err(e) = scanner.interactive_scan(&self.target) {
+                     display::error(&format!("AI scan failed: {}", e));
+                 }
+            } else {
+                display::warning("Neutron AI module not initialized (dependencies missing).");
+            }
+        } else {
+            display::info("Skipping AI scan phase.");
+        }
+        
         Ok(())
     }
 }
