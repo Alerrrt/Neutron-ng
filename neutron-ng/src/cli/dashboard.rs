@@ -23,35 +23,26 @@ impl Dashboard {
             
             match choice {
                 "0" => {
-                    display::info("Goodbye! 👋");
+                    display::info("Goodbye!");
                     break;
                 }
-                "1" => {
-                    // Quick scan - subdomain + URL discovery
-                    display::section_header("QUICK SCAN");
-                    display::info("Running subdomain discovery and URL collection...");
-                    self.run_quick_scan().await?;
-                }
-                "2" => {
-                    // Full recon scan
-                    let target = self.get_target_input()?;
-                    let output_dir = self.get_output_dir()?;
-                    self.run_full_scan(&target, &output_dir).await?;
-                }
-                "3" => self.run_subdomain_scan(true).await?,
-                "4" => self.run_url_discovery().await?,
-                "5" => self.run_infrastructure_scan().await?,
-                "6" => self.run_vulnerability_scan().await?,
-                "7" => self.run_ai_scan().await?,
-                "8" => self.run_username_osint().await?,
-                "9" => self.run_ip_scan().await?,
-                "10" => self.configure_api_keys()?,
-                "11" => self.setup_tools()?,
-                "12" => self.show_cheat_sheet()?,
+                "1" => self.run_subdomain_scan(true).await?,
+                "2" => self.run_url_discovery().await?,
+                "3" => self.run_dns_scan().await?,
+                "4" => self.run_tech_fingerprint().await?,
+                "5" => self.run_network_intel().await?,
+                "6" => self.run_js_endpoint_extraction().await?,
+                "7" => self.run_secret_scanning().await?,
+                "8" => self.run_vulnerability_scan().await?,
+                "9" => self.run_ai_scan().await?,
+                "10" => self.run_web_crawler().await?,
+                "11" => self.run_username_osint().await?,
+                "12" => self.run_ip_scan().await?,
+                "13" => self.configure_api_keys()?,
+                "14" => self.setup_tools()?,
                 "" => continue,
                 _ => {
-                    display::warning(&format!("Invalid option: '{}'", choice));
-                    display::info("Please enter a number from the menu");
+                    display::warning(&format!("Invalid option: {}", choice));
                 }
             }
             
@@ -63,49 +54,35 @@ impl Dashboard {
     }
     
     fn show_main_menu(&self) {
-        println!("\n{}", "═".repeat(70).bright_cyan());
+        println!("\n{}", "═".repeat(60).bright_cyan());
         println!("{}", "  NEUTRON-NG INTERACTIVE MODE".bright_green().bold());
-        println!("{}", "  Advanced Reconnaissance & Security Testing".bright_black());
-        println!("{}", "═".repeat(70).bright_cyan());
+        println!("{}", "═".repeat(60).bright_cyan());
         
-        println!("\n{}", "  🎯 QUICK START".bright_yellow().bold());
-        println!("  {}  {}", "1".bright_cyan(), "Quick Scan (Recommended for beginners)");
-        println!("  {}  {}", "2".bright_cyan(), "Full Reconnaissance Scan");
+        println!("\n{}", "  RECONNAISSANCE".bright_yellow().bold());
+        println!("  {} Subdomain Discovery", "1.".bright_cyan());
+        println!("  {} URL Discovery", "2.".bright_cyan());
+        println!("  {} DNS Records", "3.".bright_cyan());
+        println!("  {} Technology Fingerprinting", "4.".bright_cyan());
+        println!("  {} Network Intelligence", "5.".bright_cyan());
         
-        println!("\n{}", "  🔍 RECONNAISSANCE MODULES".bright_yellow().bold());
-        println!("  {}  {}", "3".bright_cyan(), "Subdomain Discovery");
-        println!("  {}  {}", "4".bright_cyan(), "URL & Endpoint Discovery");
-        println!("  {}  {}", "5".bright_cyan(), "Technology & Infrastructure Analysis");
+        println!("\n{}", "  SCANNING".bright_yellow().bold());
+        println!("  {} JavaScript Analysis", "6.".bright_cyan());
+        println!("  {} Secret Scanning", "7.".bright_cyan());
+        println!("  {} Vulnerability Scan", "8.".bright_cyan());
+        println!("  {} AI Scan", "9.".bright_cyan());
         
-        println!("\n{}", "  🛡️  SECURITY TESTING".bright_yellow().bold());
-        println!("  {}  {}", "6".bright_cyan(), "Vulnerability Scanner (XSS, SQLi)");
-        println!("  {}  {}", "7".bright_cyan(), "AI-Powered Security Scan");
+        println!("\n{}", "  CRAWLER & OSINT".bright_yellow().bold());
+        println!("  {} Web Crawler", "10.".bright_cyan());
+        println!("  {} Username OSINT", "11.".bright_cyan());
+        println!("  {} IP Intelligence", "12.".bright_cyan());
         
-        println!("\n{}", "  📊 INTELLIGENCE GATHERING".bright_yellow().bold());
-        println!("  {}  {}", "8".bright_cyan(), "Username OSINT (Social Media Search)");
-        println!("  {}  {}", "9".bright_cyan(), "IP Address Intelligence");
+        println!("\n{}", "  SETUP".bright_yellow().bold());
+        println!("  {} Configure API Keys", "13.".bright_cyan());
+        println!("  {} Setup Tools", "14.".bright_cyan());
         
-        println!("\n{}", "  ⚙️  CONFIGURATION".bright_yellow().bold());
-        println!("  {} {}", "10".bright_cyan(), "Configure API Keys");
-        println!("  {} {}", "11".bright_cyan(), "Setup Tools (subfinder, naabu, httpx, etc.)");
-        println!("  {} {}", "12".bright_cyan(), "View Security Cheat Sheets");
-        
-        println!("\n{}", "  ⚡ ACTIONS".bright_yellow().bold());
-        println!("  {}  {}", "0".bright_red(), "Exit");
-        
-        println!("\n{}", "═".repeat(70).bright_cyan());
-        print!("{}", "  Enter your choice: ".bright_white().bold());
-    }
-
-        
-        if self.api_keys_configured {
-            display::success("✓ API keys configured");
-        } else {
-            display::warning("⚠ API keys not set (some premium sources will be skipped)");
-        }
-        
-        println!("\n  💡 Tip: Use option [13] to configure API keys for enhanced results");
-        println!();
+        println!("\n  {}  Exit", "0.".bright_red());
+        println!("{}", "═".repeat(60).bright_cyan());
+        print!("  Choice: ");
     }
     
     fn configure_api_keys(&mut self) -> anyhow::Result<()> {
