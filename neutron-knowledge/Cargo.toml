@@ -1,0 +1,16 @@
+[package]
+name = "neutron-knowledge"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+
+[dependencies]
+match_opt = "0.1.2"
+serde = { workspace = true, features = ["derive"] }
+serde_json.workspace = true
+rust-embed = "8.0.0"
+strum = "0.25"
+strum_macros = "0.25"
+anyhow.workspace = true
+colored.workspace = true

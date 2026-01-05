@@ -1,6 +1,4 @@
-use clap::{Parser, Subcommand};
-use tracing::{info, Level};
-use tracing_subscriber::FmtSubscriber;
+use colored::*;
 
 mod cli;
 use cli::display;
@@ -115,6 +113,17 @@ enum Commands {
         /// IP address to analyze
         #[arg(short, long)]
         target: String,
+    },
+
+    /// Access security cheat sheets
+    Cheat {
+        /// Topic to view (e.g. "nmap", "reverse_shells") or "list"
+        #[arg(index = 1)]
+        topic: Option<String>,
+
+        /// Search for a term across all cheat sheets
+        #[arg(short, long)]
+        search: Option<String>,
     },
 }
 
@@ -471,6 +480,56 @@ async fn main() -> anyhow::Result<()> {
                 }
                 Err(e) => {
                      display::error(&format!("IP analysis failed: {}", e));
+                }
+            }
+        }
+                }
+            }
+        }
+        Commands::Cheat { topic, search } => {
+            display::section_header("SECURITY KNOWLEDGE BASE");
+            
+            if let Some(query) = search {
+                info!("Searching cheat sheets for: {}", query);
+                let results = neutron_knowledge::KnowledgeBase::search(&query);
+                if results.is_empty() {
+                    display::warning("No matches found.");
+                } else {
+                    display::success(&format!("Found {} matches:", results.len()));
+                    println!();
+                    for (topic, context) in results {
+                        println!("  {} -> {}", topic.cyan().bold(), context.dimmed());
+                    }
+                    println!();
+                    display::info("Use 'neutron-ng cheat <topic>' to view full content");
+                }
+                return Ok(());
+            }
+
+            match topic.as_deref() {
+                Some("list") | None => {
+                    let topics = neutron_knowledge::KnowledgeBase::list_topics();
+                    display::info("Available Cheat Sheets:");
+                    println!();
+                    for topic in topics {
+                        println!("  • {}", topic.cyan());
+                    }
+                    println!();
+                    display::info("Usage: neutron-ng cheat <topic>");
+                }
+                Some(t) => {
+                    match neutron_knowledge::KnowledgeBase::get_content(t) {
+                        Ok(content) => {
+                            println!();
+                            // Simple markdown rendering (just printing for now, could use a terminal markdown renderer later)
+                            println!("{}", content);
+                            println!();
+                        }
+                        Err(_) => {
+                            display::error(&format!("Topic '{}' not found.", t));
+                            display::info("Use 'neutron-ng cheat list' to see available topics.");
+                        }
+                    }
                 }
             }
         }
