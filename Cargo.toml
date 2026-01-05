@@ -11,6 +11,7 @@ members = [
     "neutron-tech",
     "neutron-network",
     "neutron-user",
+    "neutron-ip",
 ]
 
 [workspace.package]

@@ -1,0 +1,17 @@
+[package]
+name = "neutron-ip"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+
+[dependencies]
+neutron-types = { path = "../neutron-types" }
+neutron-network = { path = "../neutron-network" }
+
+tokio.workspace = true
+anyhow.workspace = true
+tracing.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+reqwest.workspace = true
